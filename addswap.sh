@@ -139,9 +139,9 @@ main() {
   check_swappiness
   echo -e "—————————————————————————————————————————————————————————————"
   _green "Linux VPS one click add/remove swap script ${Font}"
-  _green "1, Add swap${Font}"
-  _green "2, Remove swap${Font}"
-  _green "3, Set swappiness value${Font}"
+  _green "1, Add swap-增加虚拟内存${Font}"
+  _green "2, Remove swap-删除虚拟内存${Font}"
+  _green "3, Set swappiness value-设置虚拟内存${Font}"
   echo -e "—————————————————————————————————————————————————————————————"
   while true; do
     _green "Please enter a number"
