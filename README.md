@@ -12,3 +12,15 @@ wget -O install_docker.sh "https://raw.githubusercontent.com/wszx123/gongjuxiang
 ```
 curl -L https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/addswap.sh -o addswap.sh && chmod +x addswap.sh && bash addswap.sh
 ```
+
+# 三、一键工具箱【正在调试，还没完成，请不要使用】
+ws01 一键工具箱
+- 一键脚本：
+```
+wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/toolbox.sh -O toolbox.sh && chmod +x toolbox.sh && ./toolbox.sh
+```
+或
+- 一键脚本：
+```
+curl -o toolbox.sh https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/toolbox.sh && chmod +x toolbox.sh && ./toolbox.sh
+```
