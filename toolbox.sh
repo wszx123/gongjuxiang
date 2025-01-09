@@ -441,10 +441,6 @@ classic_apps() {
 			done
 			  ;;
 
-
-
-            back_to_menu classic_apps
-            ;;
         2)
             echo "安装简单图床图片管理程序..."
             # 从kejilion.sh中提取简单图床图片管理程序的安装命令
