@@ -17,49 +17,58 @@ back_to_menu() {
 common_commands() {
     clear
     echo -e "${GREEN}=== 常用命令 ===${NC}"
-    echo "1. 一键升级"
-    echo "2. X-UI-F大"
-    echo "3. X-UI-F大独立版"
-    echo "4. F大warp添加IPV4"
-    echo "5. 安装hy2"
-    echo "6. 修改vps密码"
-    echo "7. 更新系统"
+    echo "1. 系统信息查询"
+    echo "2. 一键升级"
+    echo "3. X-UI-F大"
+    echo "4. X-UI-F大独立版"
+    echo "5. F大warp添加IPV4"
+    echo "6. 安装hy2"
+    echo "7. 修改vps密码"
+    echo "8. 更新系统"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-7): " subchoice
+    read -p "请选择 (0-8): " choice
     
-    case $subchoice in
-        1) 
+    case $choice in
+        1)
+            echo "查询系统信息..."
+            uname -a
+            lsb_release -a
+            df -h
+            free -m
+            back_to_menu common_commands
+            ;;
+        2)
             echo "执行一键升级..."
             apt update -y && apt install curl wget -y && apt update && apt install curl wget
             back_to_menu common_commands 
             ;;
-        2)
+        3)
             echo "执行X-UI-F大安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh)
             back_to_menu common_commands 
             ;;
-        3)
+        4)
             echo "执行X-UI-F大独立版安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh) 0.3.4.4
             back_to_menu common_commands 
             ;;
-        4)
+        5)
             echo "执行F大warp添加IPV4..."
             wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh && bash menu.sh [option] [lisence/url/token]
             back_to_menu common_commands 
             ;;
-        5)
+        6)
             echo "安装hy2..."
             wget -N --no-check-certificate https://raw.githubusercontent.com/Misaka-blog/hysteria-install/main/hy2/hysteria.sh && bash hysteria.sh
             back_to_menu common_commands 
             ;;
-        6)
+        7)
             echo "修改VPS密码..."
             passwd
             back_to_menu common_commands 
             ;;
-        7)
+        8)
             echo "更新系统..."
             apt update -y && apt upgrade -y && apt install -y curl wget sudo socat
             back_to_menu common_commands 
