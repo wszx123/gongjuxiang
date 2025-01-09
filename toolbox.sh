@@ -333,31 +333,200 @@ caddy_tools() {
     esac
 }
 
+# 经典应用函数
+classic_apps() {
+    clear
+    echo -e "${GREEN}=== 经典应用 ===${NC}"
+    echo "1. Cloudreve网盘"
+    echo "2. 简单图床图片管理程序"
+    echo "3. webssh网页版SSH连接工具"
+    echo "4. Speedtest测速面板"
+    echo "5. UptimeKuma监控工具"
+    echo "6. Memos网页备忘录"
+    echo "7. searxng聚合搜索站"
+    echo "8. PhotoPrism私有相册系统"
+    echo "9. Sun-Panel导航面板"
+    echo "10. MyIP工具箱"
+    echo "11. Pingvin-Share文件分享平台"
+    echo "0. 返回主菜单"
+    
+    read -p "请选择功能 (0-11): " choice
+    
+    case $choice in
+        1)
+            echo "安装Cloudreve网盘..."
+
+			send_stats "搭建网盘"
+
+
+			local docker_name=cloudreve
+			local docker_port=5212
+			while true; do
+				check_docker_app
+				check_docker_image_update $docker_name
+				clear
+				echo -e "网盘服务 $check_docker $update_status"
+				echo "cloudreve是一个支持多家云存储的网盘系统"
+				echo "视频介绍: https://www.bilibili.com/video/BV13F4m1c7h7?t=0.1"
+				if docker inspect "$docker_name" &>/dev/null; then
+					check_docker_app_ip
+				fi
+				echo ""
+
+				echo "------------------------"
+				echo "1. 安装           2. 更新           3. 卸载"
+				echo "------------------------"
+				echo "5. 域名访问"
+				echo "------------------------"
+				echo "0. 返回上一级"
+				echo "------------------------"
+				read -e -p "输入你的选择: " choice
+
+				case $choice in
+					1)
+						install jq
+						install_docker
+						cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
+						curl -o /home/docker/cloud/docker-compose.yml ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/cloudreve-docker-compose.yml
+						cd /home/docker/cloud/ && docker compose up -d
+
+						clear
+						echo "cloudreve已经安装完成"
+						check_docker_app_ip
+						sleep 3
+						docker logs cloudreve
+						echo ""
+
+
+						;;
+
+					2)
+						docker rm -f cloudreve
+						docker rmi -f cloudreve/cloudreve:latest
+						docker rm -f aria2
+						docker rmi -f p3terx/aria2-pro
+						cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
+						curl -o /home/docker/cloud/docker-compose.yml ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/cloudreve-docker-compose.yml
+						cd /home/docker/cloud/ && docker compose up -d
+						clear
+						echo "cloudreve已经安装完成"
+						check_docker_app_ip
+						sleep 3
+						docker logs cloudreve
+						echo ""
+						;;
+					3)
+
+						docker rm -f cloudreve
+						docker rmi -f cloudreve/cloudreve:latest
+						docker rm -f aria2
+						docker rmi -f p3terx/aria2-pro
+						rm -rf /home/docker/cloud
+						echo "应用已卸载"
+
+						;;
+					5)
+						echo "${docker_name}域名访问设置"
+						send_stats "${docker_name}域名访问设置"
+						add_yuming
+						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+						;;
+
+					*)
+						break
+						;;
+
+				esac
+				break_end
+			done
+			  ;;
+
+
+
+            back_to_menu classic_apps
+            ;;
+        2)
+            echo "安装简单图床图片管理程序..."
+            # 从kejilion.sh中提取简单图床图片管理程序的安装命令
+            back_to_menu classic_apps
+            ;;
+        3)
+            echo "安装webssh网页版SSH连接工具..."
+            # 从kejilion.sh中提取webssh网页版SSH连接工具的安装命令
+            back_to_menu classic_apps
+            ;;
+        4)
+            echo "安装Speedtest测速面板..."
+            # 从kejilion.sh中提取Speedtest测速面板的安装命令
+            back_to_menu classic_apps
+            ;;
+        5)
+            echo "安装UptimeKuma监控工具..."
+            # 从kejilion.sh中提取UptimeKuma监控工具的安装命令
+            back_to_menu classic_apps
+            ;;
+        6)
+            echo "安装Memos网页备忘录..."
+            # 从kejilion.sh中提取Memos网页备忘录的安装命令
+            back_to_menu classic_apps
+            ;;
+        7)
+            echo "安装searxng聚合搜索站..."
+            # 从kejilion.sh中提取searxng聚合搜索站的安装命令
+            back_to_menu classic_apps
+            ;;
+        8)
+            echo "安装PhotoPrism私有相册系统..."
+            # 从kejilion.sh中提取PhotoPrism私有相册系统的安装命令
+            back_to_menu classic_apps
+            ;;
+        9)
+            echo "安装Sun-Panel导航面板..."
+            # 从kejilion.sh中提取Sun-Panel导航面板的安装命令
+            back_to_menu classic_apps
+            ;;
+        10)
+            echo "安装MyIP工具箱..."
+            # 从kejilion.sh中提取MyIP工具箱的安装命令
+            back_to_menu classic_apps
+            ;;
+        11)
+            echo "安装Pingvin-Share文件分享平台..."
+            # 从kejilion.sh中提取Pingvin-Share文件分享平台的安装命令
+            back_to_menu classic_apps
+            ;;
+        0) main_menu ;;
+        *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; classic_apps ;;
+    esac
+}
+
 # 主菜单函数
 main_menu() {
     clear
     echo -e "${GREEN}=== Linux 命令工具箱 ===${NC}"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
-    echo "3. 抢鸡工具"
-    echo "4. 重装系统"
-    echo "5. 开小鸡工具"
-    echo "6. Docker 工具"
-    echo "7. 哪吒面板"
-    echo "8. Caddy2 工具"
+    echo "3. 经典应用"
+    echo "4. 抢鸡工具"
+    echo "5. 重装系统"
+    echo "6. 开小鸡工具"
+    echo "7. Docker 工具"
+    echo "8. 哪吒面板"
+    echo "9. Caddy2 工具"
     echo "0. 退出"
     
-    read -p "请选择功能 (0-8): " choice
+    read -p "请选择功能 (0-9): " choice
     
     case $choice in
         1) common_commands ;;
         2) vps_install ;;
-        3) vps_grab ;;
-        4) system_reinstall ;;
-        5) vps_create ;;
-        6) docker_tools ;;
-        7) nezha_panel ;;
-        8) caddy_tools ;;
+        3) classic_apps ;;
+        4) vps_grab ;;
+        5) system_reinstall ;;
+        6) vps_create ;;
+        7) docker_tools ;;
+        8) nezha_panel ;;
+        9) caddy_tools ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; main_menu ;;
     esac
