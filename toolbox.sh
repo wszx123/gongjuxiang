@@ -148,10 +148,10 @@ vps_grab() {
 system_reinstall() {
     clear
     echo -e "${GREEN}=== 重装系统 ===${NC}"
-    echo "1. 命令1-必须"
-    echo "2. 命令2-安装Debian 12"
-    echo "3. 命令3-安装Ubuntu 22.04"
-    echo "4. 命令4-安装alpine"
+    echo "1. 命令1-必须，密码为LeitboGi0ro，重装后必须修改"
+    echo "2. 命令2-安装Debian 12，密码为LeitboGi0ro，重装后必须修改"
+    echo "3. 命令3-安装Ubuntu 22.04，密码为LeitboGi0ro，重装后必须修改"
+    echo "4. 命令4-安装alpine，密码为LeitboGi0ro，重装后必须修改"
     echo "5. 一键重装debian11【不修改密码】"
     echo "6. 一键重装debian11【密码为KKK12356ws01，虚拟内存1G】"
     echo "7. 一键重装debian12【不修改密码】"
