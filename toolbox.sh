@@ -55,48 +55,53 @@ common_commands() {
             echo "| 系统时间      | $(date) |"
             echo "| 运行时长      | $(uptime -p) |"
             echo "----------------------------------------"
-            back_to_menu common_commands
+            main_menu
             ;;
         2)
             echo "执行一键升级..."
             apt update -y && apt install curl wget -y && apt update && apt install curl wget
-            back_to_menu common_commands 
+            main_menu 
             ;;
         3)
             echo "执行X-UI-F大安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh)
-            back_to_menu common_commands 
+            main_menu 
             ;;
         4)
             echo "执行X-UI-F大独立版安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh) 0.3.4.4
-            back_to_menu common_commands 
+            main_menu 
             ;;
         5)
             echo "执行F大warp添加IPV4..."
             wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh && bash menu.sh [option] [lisence/url/token]
-            back_to_menu common_commands 
+            main_menu 
             ;;
         6)
             echo "安装hy2..."
             wget -N --no-check-certificate https://raw.githubusercontent.com/Misaka-blog/hysteria-install/main/hy2/hysteria.sh && bash hysteria.sh
-            back_to_menu common_commands 
+            main_menu 
             ;;
         7)
             echo "修改VPS密码..."
             passwd
-            back_to_menu common_commands
+            main_menu
             ;;
         8)
             echo "修改VPS 22端口为50100..."
-            # 22/Port 50100/' 50100为要修改的端口
-            sed -i 's/#Port 22\|Port 22/Port 50100/' /etc/ssh/sshd_config && service ssh restart
-            back_to_menu common_commands
+            sed -i 's/^#\?Port 22/Port 50100/' /etc/ssh/sshd_config && systemctl restart ssh
+            main_menu
             ;;
         9)
             echo "更新系统..."
-            apt update && apt upgrade -y
-            back_to_menu common_commands
+            read -p "确认更新系统？(y/n): " confirm
+if [[ "$confirm" == "y" ]]; then
+    apt update && apt full-upgrade -y
+else
+    echo "取消更新"
+fi
+
+            main_menu
             ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; common_commands ;;
@@ -185,7 +190,7 @@ system_reinstall() {
             ;;
         6)
             echo "执行一键重装debian11【密码为KKK12356ws01，重装后要修改，虚拟内荐1G】..."
-            bash <(curl -sSL bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 11 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
+            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 11 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
             back_to_menu system_reinstall
             ;;
         7)
@@ -200,7 +205,7 @@ system_reinstall() {
             ;;
         9)
             echo "一键重装OpenVz/LXC【小内存LXC专用，其它慎用】..."
-            bash <curl -so OsMutation.sh https://raw.githubusercontent.com/LloydAsp/OsMutation/main/OsMutation.sh && chmod u+x OsMutation.sh && ./OsMutation.sh
+            curl -so OsMutation.sh https://raw.githubusercontent.com/LloydAsp/OsMutation/main/OsMutation.sh && chmod u+x OsMutation.sh && bash OsMutation.sh
             back_to_menu system_reinstall
             ;;
         10)
