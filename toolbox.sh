@@ -24,7 +24,8 @@ common_commands() {
     echo "5. F大warp添加IPV4"
     echo "6. 安装hy2"
     echo "7. 修改vps密码"
-    echo "8. 更新系统"
+    echo "8. 修改vps 22端口"
+    echo "9. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-8): " choice
@@ -87,6 +88,12 @@ common_commands() {
             back_to_menu common_commands
             ;;
         8)
+            echo "修改VPS 22端口为50100..."
+            # 22/Port 50100/' 50100为要修改的端口
+            sed -i 's/#Port 22\|Port 22/Port 50100/' /etc/ssh/sshd_config && service ssh restart
+            back_to_menu common_commands
+            ;;
+        9)
             echo "更新系统..."
             apt update && apt upgrade -y
             back_to_menu common_commands
@@ -140,11 +147,15 @@ system_reinstall() {
     echo "2. 命令2-安装Debian 12"
     echo "3. 命令3-安装Ubuntu 22.04"
     echo "4. 命令4-安装alpine"
-    echo "5. 一键重装【慎用】"
-    echo "6. 重启"
+    echo "5. 一键重装debian11【不修改密码】"
+    echo "6. 一键重装debian11【密码为KKK12356ws01，虚拟内存1G】"
+    echo "7. 一键重装debian12【不修改密码】"
+    echo "8. 一键重装debian12【密码为KKK12356ws01，虚拟内存1G】"
+    echo "9. 一键重装OpenVz/LXC【小内存LXC专用，其它慎用】"
+    echo "10. 重启"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-6): " subchoice
+    read -p "请选择 (0-10): " subchoice
     
     case $subchoice in
         1)
@@ -168,11 +179,31 @@ system_reinstall() {
             back_to_menu system_reinstall
             ;;
         5)
-            echo "执行一键重装【慎用】..."
+            echo "执行一键重装debian11【不修改密码】..."
             bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 11 -timezone "Asia/Shanghai"
             back_to_menu system_reinstall
             ;;
         6)
+            echo "执行一键重装debian11【密码为KKK12356ws01，重装后要修改，虚拟内荐1G】..."
+            bash <(curl -sSL bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 11 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
+            back_to_menu system_reinstall
+            ;;
+        7)
+            echo "执行一键重装debian12【不修改密码】..."
+            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 12 -timezone "Asia/Shanghai"
+            back_to_menu system_reinstall
+            ;;
+        8)
+            echo "执行一键重装debian12【密码为KKK12356ws01，重装后要修改，虚拟内荐1G】..."
+            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 12 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
+            back_to_menu system_reinstall
+            ;;
+        9)
+            echo "一键重装OpenVz/LXC【小内存LXC专用，其它慎用】..."
+            bash <curl -so OsMutation.sh https://raw.githubusercontent.com/LloydAsp/OsMutation/main/OsMutation.sh && chmod u+x OsMutation.sh && ./OsMutation.sh
+            back_to_menu system_reinstall
+            ;;
+        10)
             echo "重启系统..."
             reboot
             ;;
