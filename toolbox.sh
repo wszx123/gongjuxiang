@@ -31,7 +31,7 @@ common_commands() {
     echo "12. 更新系统"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-8): " choice
+    read -p "请选择 (0-12): " choice
     
     case $choice in
         1)
@@ -102,7 +102,9 @@ common_commands() {
             ;;
         10)
             echo "执行 融合怪命令..."
-            bash <(curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin)
+            # 修改: 分离 docker 安装和 docker-compose 链接操作
+            curl -fsSL https://get.docker.com | sh
+            ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
             main_menu 
             ;;
         11)
