@@ -26,9 +26,10 @@ common_commands() {
     echo "7. 修改vps密码"
     echo "8. 修改vps 22端口"
     echo "9. 3X-UI"
-    echo "10. 融合怪命令"
-    echo "11. 解锁测试"
-    echo "12. 更新系统"
+    echo "10. 融合怪命令1【综合测试】"
+    echo "11. 融合怪命令2【三网测速】"
+    echo "12. 解锁测试"
+    echo "13. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-12): " choice
@@ -101,16 +102,21 @@ common_commands() {
             main_menu 
             ;;
         10)
-            echo "执行 融合怪命令..."
-            bash <(curl -L -s https://bench.im/hyperspeed)
+            echo "执行 融合怪命令1【综合测试】..."
+            bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
         11)
+            echo "执行 融合怪命令2【三网测速】..."
+            bash <(curl -L -s https://bench.im/hyperspeed)
+            main_menu 
+            ;;
+        12
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
-        12)
+        13)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
