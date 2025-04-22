@@ -102,7 +102,7 @@ common_commands() {
             ;;
         10)
             echo "执行 融合怪命令..."
-            curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
+            bash <(curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin)
             main_menu 
             ;;
         11)
