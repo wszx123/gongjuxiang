@@ -26,13 +26,13 @@ common_commands() {
     echo "7. 修改vps密码"
     echo "8. 修改vps 22端口"
     echo "9. 安装 3X-UI"
-    echo "10. 融合怪命令1"
-    echo "11. 融合怪命令2"
+    echo "10. 融合怪命令1【综合测试】"
+    echo "11. 融合怪命令2【三网测试】"
     echo "12. 解锁测试"
     echo "13. 更新系统"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-8): " choice
+    read -p "请选择 (0-13): " choice
     
     case $choice in
         1)
@@ -102,18 +102,18 @@ common_commands() {
             main_menu 
             ;;
         10)
-            echo "融合怪命令1..."
+            echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
         11)
-            echo "融合怪命令2..."
+            echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
         12)
             echo "解锁测试..."
-            bash <(curl -L -s https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/check.sh)
+            bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
         13)
