@@ -113,7 +113,7 @@ common_commands() {
             ;;
         12)
             echo "解锁测试..."
-            bash <(curl -L -s media.ispvps.com)
+            bash <(curl -L -s https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/check.sh)
             main_menu 
             ;;
         13)
