@@ -25,7 +25,10 @@ common_commands() {
     echo "6. 安装hy2"
     echo "7. 修改vps密码"
     echo "8. 修改vps 22端口"
-    echo "9. 更新系统"
+    echo "9. 3X-UI"
+    echo "10. 融合怪命令"
+    echo "11. 解锁测试"
+    echo "12. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-8): " choice
@@ -93,6 +96,21 @@ common_commands() {
             main_menu
             ;;
         9)
+            echo "执行 3X-UI..."
+            bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+            main_menu 
+            ;;
+        10)
+            echo "执行 融合怪命令..."
+            curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
+            main_menu 
+            ;;
+        11)
+            echo "解锁测试..."
+            bash <(curl -L -s media.ispvps.com)
+            main_menu 
+            ;;
+        12)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
