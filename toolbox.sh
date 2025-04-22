@@ -102,9 +102,7 @@ common_commands() {
             ;;
         10)
             echo "执行 融合怪命令..."
-            # 修改: 分离 docker 安装和 docker-compose 链接操作
-            curl -fsSL https://get.docker.com | sh
-            ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
+            bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
         11)
