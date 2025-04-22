@@ -4609,11 +4609,7 @@ function ScriptTitle() {
 #ScriptTitle
 
 function Start() {
-	  echo -e ""
-    bash <(curl -s https://raw.githubusercontent.com/xykt/RegionRestrictionCheck/main/reference/ws01-AD/AD2)
-	  echo -e ""
-    bash <(curl -s https://raw.githubusercontent.com/xykt/RegionRestrictionCheck/main/reference/ws01-AD/AD)
-	  echo -e ""
+
     if [[ "$language" == "e" ]]; then
         echo -e "${Font_Blue}Please Select Test Region or Press ENTER to Test All Regions${Font_Suffix}"
         echo -e "${Font_SkyBlue}Input Number  [1]: [ Multination + Taiwan ]${Font_Suffix}"
@@ -4645,7 +4641,7 @@ function Start() {
         echo -e "${Font_SkyBlue}输入数字 [11]: [ 跨国平台+非洲平台 ]检测${Font_Suffix}"
         echo -e "${Font_SkyBlue}输入数字  [0]: [   只进行跨国平台  ]检测${Font_Suffix}"
         echo -e "${Font_SkyBlue}输入数字 [99]: [   体育直播平台    ]检测${Font_Suffix}"
-        echo -e "${Font_Purple}输入数字 [69]: [   广告推广投放    ]咨询${Font_Suffix}"
+
         read -p "请输入正确数字或直接按回车:" num
     fi
 }
@@ -4845,17 +4841,7 @@ function RunScript() {
             fi
             Goodbye
 
-        elif [[ "$num" -eq 69 ]]; then
-            clear
-            ScriptTitle
-            echo ""
-            echo ""
-            echo -e "${Font_Red}**************************${Font_Suffix}"
-            echo -e "${Font_Red}*                        *${Font_Suffix}"
-            echo -e "${Font_Red}*${Font_Suffix} 广告招租               ${Font_Red}*${Font_Suffix}"
-            echo -e "${Font_Red}*${Font_Suffix} 请联系：@xythebot ${Font_Red}*${Font_Suffix}"
-            echo -e "${Font_Red}*                        *${Font_Suffix}"
-            echo -e "${Font_Red}**************************${Font_Suffix}"
+
 
         else
             echo -e "${Font_Red}请重新执行脚本并输入正确号码${Font_Suffix}"
