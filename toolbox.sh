@@ -111,7 +111,7 @@ common_commands() {
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
-        12
+        12)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
