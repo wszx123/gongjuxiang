@@ -23,18 +23,14 @@ common_commands() {
     echo "4. X-UI-F大独立版"
     echo "5. F大warp添加IPV4"
     echo "6. 安装hy2"
-    echo "7. 修改vps密码"
-    echo "8. 修改vps 22端口"
-    echo "9. 安装 3X-UI"
-    echo "10. 融合怪命令1【综合测试】"
-    echo "11. 融合怪命令2【三网测试】"
-    echo "12. 解锁测试"
-    echo "13. 一键修改为密钥登录"
-    echo "14. 恢复密码登录【已安装13才可用】"
-    echo "15. 更新系统"
+    echo "7. 安装 3X-UI"
+    echo "8. 融合怪命令1【综合测试】"
+    echo "9. 融合怪命令2【三网测试】"
+    echo "10. 解锁测试"
+    echo "11. 更新系统"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-13): " choice
+    read -p "请选择 (0-11): " choice
     
     case $choice in
         1)
@@ -89,46 +85,26 @@ common_commands() {
             main_menu 
             ;;
         7)
-            echo "修改VPS密码..."
-            passwd
-            main_menu
-            ;;
-        8)
-            echo "修改VPS 22端口为50100..."
-            sed -i 's/^#\?Port 22/Port 50100/' /etc/ssh/sshd_config && systemctl restart ssh
-            main_menu
-            ;;
-        9)
             echo "安装3X-UI..."
             bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
             main_menu 
             ;;
-        10)
+        8)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
-        11)
+        9)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
-        12)
+        10)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
-        13)
-            echo "一键修改为密钥登录..."
-            bash -c "$(curl -L https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/authorized_keys.sh)"
-            main_menu 
-            ;;
-        14)
-            echo "恢复密码登录【已安装13才可用】..."
-            bash /root/restore_ssh_password_auth.sh
-            main_menu 
-            ;;
-        15)
+        11)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
@@ -148,7 +124,9 @@ fi
 vps_install() {
     clear
     echo -e "${GREEN}=== VPS 安装工具 ===${NC}"
-    for i in {1..20}; do
+    echo "1. 安装unzip"
+    echo "2. 安装zip"
+    for i in {3..20}; do
         echo "$i. VPS 安装工具$i"
     done
     echo "0. 返回主菜单"
@@ -156,7 +134,17 @@ vps_install() {
     read -p "请选择 (0-20): " subchoice
     
     case $subchoice in
-        [1-9]|1[0-9]|20) echo "执行VPS安装工具$subchoice" ; back_to_menu vps_install ;;
+        1)
+            echo "安装unzip..."
+            apt -y install unzip
+            back_to_menu vps_install
+            ;;
+        2)
+            echo "安装zip..."
+            apt -y install zip
+            back_to_menu vps_install
+            ;;
+        [3-9]|1[0-9]|20) echo "执行VPS安装工具$subchoice" ; back_to_menu vps_install ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; vps_install ;;
     esac
@@ -504,6 +492,60 @@ classic_apps() {
     esac
 }
 
+# VPS安全工具函数
+vps_security_tools() {
+    clear
+    echo -e "${GREEN}=== VPS安全工具 ===${NC}"
+    echo "1. 一键关闭root远程登录"
+    echo "2. 一键开启防火墙(UFW)"
+    echo "3. 一键关闭防火墙(UFW)"
+    echo "4. 修改VPS密码"
+    echo "5. 修改VPS 22端口"
+    echo "6. 一键修改为密钥登录"
+    echo "7. 恢复密码登录【已安装6才可用】"
+    echo "0. 返回主菜单"
+    read -p "请选择 (0-7): " subchoice
+    case $subchoice in
+        1)
+            echo "关闭root远程登录..."
+            sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
+            back_to_menu vps_security_tools
+            ;;
+        2)
+            echo "开启UFW防火墙..."
+            ufw enable
+            back_to_menu vps_security_tools
+            ;;
+        3)
+            echo "关闭UFW防火墙..."
+            ufw disable
+            back_to_menu vps_security_tools
+            ;;
+        4)
+            echo "修改VPS密码..."
+            passwd
+            back_to_menu vps_security_tools
+            ;;
+        5)
+            echo "修改VPS 22端口为50100..."
+            sed -i 's/^#\?Port 22/Port 50100/' /etc/ssh/sshd_config && systemctl restart ssh
+            back_to_menu vps_security_tools
+            ;;
+        6)
+            echo "一键修改为密钥登录..."
+            bash -c "$(curl -L https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/authorized_keys.sh)"
+            back_to_menu vps_security_tools
+            ;;
+        7)
+            echo "恢复密码登录【已安装6才可用】..."
+            bash /root/restore_ssh_password_auth.sh
+            back_to_menu vps_security_tools
+            ;;
+        0) main_menu ;;
+        *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; vps_security_tools ;;
+    esac
+}
+
 # 主菜单函数
 main_menu() {
     clear
@@ -517,9 +559,10 @@ main_menu() {
     echo "7. Docker 工具"
     echo "8. 哪吒面板"
     echo "9. Caddy2 工具"
+    echo "10. VPS安全工具"
     echo "0. 退出"
     
-    read -p "请选择功能 (0-9): " choice
+    read -p "请选择功能 (0-10): " choice
     
     case $choice in
         1) common_commands ;;
@@ -531,6 +574,7 @@ main_menu() {
         7) docker_tools ;;
         8) nezha_panel ;;
         9) caddy_tools ;;
+        10) vps_security_tools ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; main_menu ;;
     esac
