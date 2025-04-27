@@ -29,7 +29,9 @@ common_commands() {
     echo "10. 融合怪命令1【综合测试】"
     echo "11. 融合怪命令2【三网测试】"
     echo "12. 解锁测试"
-    echo "13. 更新系统"
+    echo "13. 一键修改为密钥登录"
+    echo "14. 恢复密码登录【已安装13才可用】"
+    echo "15. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-13): " choice
@@ -117,6 +119,16 @@ common_commands() {
             main_menu 
             ;;
         13)
+            echo "一键修改为密钥登录..."
+            bash -c "$(curl -L https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/authorized_keys.sh)"
+            main_menu 
+            ;;
+        14)
+            echo "恢复密码登录【已安装13才可用】..."
+            bash /root/restore_ssh_password_auth.sh
+            main_menu 
+            ;;
+        15)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
