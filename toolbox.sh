@@ -225,12 +225,12 @@ vps_install() {
     echo "3. 安装curl"
     echo "4. 安装git"
     echo "5. 安装nano"
-    for i in {6..20}; do
+    for i in {6..10}; do
         echo "$i. VPS 安装工具$i"
     done
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-20): " subchoice
+    read -p "请选择 (0-10): " subchoice
     
     case $subchoice in
         1)
@@ -258,7 +258,7 @@ vps_install() {
             apt -y install nano
             back_to_menu vps_install
             ;;
-        [6-9]|1[0-9]|20) echo "执行VPS安装工具$subchoice" ; back_to_menu vps_install ;;
+        [6-9]|1[0-9]|10) echo "执行VPS安装工具$subchoice" ; back_to_menu vps_install ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; vps_install ;;
     esac
