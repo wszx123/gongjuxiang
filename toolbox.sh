@@ -18,19 +18,20 @@ common_commands() {
     clear
     echo -e "${GREEN}=== 常用命令 ===${NC}"
     echo "1. 系统信息查询"
-    echo "2. 一键升级"
-    echo "3. X-UI-F大"
-    echo "4. X-UI-F大独立版"
-    echo "5. F大warp添加IPV4"
-    echo "6. 安装hy2"
-    echo "7. 安装 3X-UI"
-    echo "8. 融合怪命令1【综合测试】"
-    echo "9. 融合怪命令2【三网测试】"
-    echo "10. 解锁测试"
-    echo "11. 更新系统"
+    echo "2. 系统优化"
+    echo "3. 一键升级"
+    echo "4. X-UI-F大"
+    echo "5. X-UI-F大独立版"
+    echo "6. F大warp添加IPV4"
+    echo "7. 安装hy2"
+    echo "8. 安装 3X-UI"
+    echo "9. 融合怪命令1【综合测试】"
+    echo "10. 融合怪命令2【三网测试】"
+    echo "11. 解锁测试"
+    echo "12. 更新系统"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-11): " choice
+    read -p "请选择 (0-12): " choice
     
     case $choice in
         1)
@@ -60,51 +61,146 @@ common_commands() {
             main_menu
             ;;
         2)
+            while true; do
+                clear
+                echo -e "${GREEN}=== 系统优化 ===${NC}"
+                echo "1. 校准时间"
+                echo "2. 更新系统"
+                echo "3. 清理系统"
+                echo "4. 开启BBR"
+                echo "5. ROOT登录"
+                echo "0. 返回上级菜单"
+                
+                read -p "请选择 (0-5): " opt_choice
+                
+                case $opt_choice in
+                    1)
+                        echo "校准时间..."
+                        sudo timedatectl set-timezone Asia/Shanghai
+                        sudo timedatectl set-ntp true
+                        echo -e "${GREEN}时间校准完成，当前时区为 Asia/Shanghai。${NC}"
+                        back_to_menu common_commands
+                        ;;
+                    2)
+                        echo "更新系统..."
+                        if ! sudo apt update -y && ! sudo apt full-upgrade -y; then
+                            echo -e "${RED}系统更新失败！请检查网络连接或源列表。${NC}"
+                        else
+                            sudo apt autoremove -y && sudo apt autoclean -y
+                            echo -e "${GREEN}系统更新完成！${NC}"
+                        fi
+                        back_to_menu common_commands
+                        ;;
+                    3)
+                        echo "清理系统..."
+                        sudo apt autoremove --purge -y
+                        sudo apt clean -y && sudo apt autoclean -y
+                        sudo journalctl --rotate && sudo journalctl --vacuum-time=10m
+                        sudo journalctl --vacuum-size=50M
+                        echo -e "${GREEN}系统清理完成！${NC}"
+                        back_to_menu common_commands
+                        ;;
+                    4)
+                        echo "开启BBR..."
+                        if sysctl net.ipv4.tcp_congestion_control | grep -q 'bbr'; then
+                            echo -e "${GREEN}BBR已开启！${NC}"
+                        else
+                            echo "net.core.default_qdisc = fq" | sudo tee -a /etc/sysctl.conf
+                            echo "net.ipv4.tcp_congestion_control = bbr" | sudo tee -a /etc/sysctl.conf
+                            if sudo sysctl -p; then
+                                echo -e "${GREEN}BBR已开启！${NC}"
+                            else
+                                echo -e "${RED}BBR开启失败！${NC}"
+                            fi
+                        fi
+                        back_to_menu common_commands
+                        ;;
+                    5)
+                        while true; do
+                            clear
+                            echo -e "${GREEN}=== ROOT登录 ===${NC}"
+                            echo "1. 设置密码"
+                            echo "2. 修改配置"
+                            echo "3. 重启服务"
+                            echo "0. 返回上级菜单"
+                            
+                            read -p "请选择 (0-3): " root_choice
+                            
+                            case $root_choice in
+                                1)
+                                    sudo passwd root
+                                    back_to_menu common_commands
+                                    ;;
+                                2)
+                                    sudo sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
+                                    sudo sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+                                    echo -e "${GREEN}配置修改成功！${NC}"
+                                    back_to_menu common_commands
+                                    ;;
+                                3)
+                                    if sudo systemctl restart sshd.service; then
+                                        echo -e "${GREEN}ROOT登录已开启！${NC}"
+                                    else
+                                        echo -e "${RED}ROOT登录开启失败！${NC}"
+                                    fi
+                                    back_to_menu common_commands
+                                    ;;
+                                0) break ;;
+                                *) echo -e "${RED}无效选择${NC}" ; sleep 2 ;;
+                            esac
+                        done
+                        ;;
+                    0) break ;;
+                    *) echo -e "${RED}无效选择${NC}" ; sleep 2 ;;
+                esac
+            done
+            ;;
+        3)
             echo "执行一键升级..."
             apt update -y && apt install curl wget -y && apt update && apt install curl wget
             main_menu 
             ;;
-        3)
+        4)
             echo "执行X-UI-F大安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh)
             main_menu 
             ;;
-        4)
+        5)
             echo "执行X-UI-F大独立版安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh) 0.3.4.4
             main_menu 
             ;;
-        5)
+        6)
             echo "执行F大warp添加IPV4..."
             wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh && bash menu.sh [option] [lisence/url/token]
             main_menu 
             ;;
-        6)
+        7)
             echo "安装hy2..."
             wget -N --no-check-certificate https://raw.githubusercontent.com/Misaka-blog/hysteria-install/main/hy2/hysteria.sh && bash hysteria.sh
             main_menu 
             ;;
-        7)
+        8)
             echo "安装3X-UI..."
             bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
             main_menu 
             ;;
-        8)
+        9)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
-        9)
+        10)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
-        10)
+        11)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
-        11)
+        12)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
@@ -126,7 +222,10 @@ vps_install() {
     echo -e "${GREEN}=== VPS 安装工具 ===${NC}"
     echo "1. 安装unzip"
     echo "2. 安装zip"
-    for i in {3..20}; do
+    echo "3. 安装curl"
+    echo "4. 安装git"
+    echo "5. 安装nano"
+    for i in {6..20}; do
         echo "$i. VPS 安装工具$i"
     done
     echo "0. 返回主菜单"
@@ -144,7 +243,22 @@ vps_install() {
             apt -y install zip
             back_to_menu vps_install
             ;;
-        [3-9]|1[0-9]|20) echo "执行VPS安装工具$subchoice" ; back_to_menu vps_install ;;
+        3)
+            echo "安装curl..."
+            apt -y install curl
+            back_to_menu vps_install
+            ;;
+        4)
+            echo "安装git..."
+            apt -y install git
+            back_to_menu vps_install
+            ;;
+        5)
+            echo "安装nano..."
+            apt -y install nano
+            back_to_menu vps_install
+            ;;
+        [6-9]|1[0-9]|20) echo "执行VPS安装工具$subchoice" ; back_to_menu vps_install ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; vps_install ;;
     esac
@@ -497,14 +611,15 @@ vps_security_tools() {
     clear
     echo -e "${GREEN}=== VPS安全工具 ===${NC}"
     echo "1. 修改VPS密码"
-    echo "2. 修改VPS 22端口"
-    echo "3. 一键修改为密钥登录"
-    echo "4. 恢复密码登录【已安装3才可用】"
-    echo "5. 一键开启防火墙(UFW)"
-    echo "6. 一键关闭防火墙(UFW)"
-    echo "7. 一键关闭root远程登录"
+    echo "2. 修改VPS 22端口为50100"
+    echo "3. 修改VPS端口为任意端口"
+    echo "4. 一键修改为密钥登录"
+    echo "5. 恢复密码登录【已安装3才可用】"
+    echo "6. 一键开启防火墙(UFW)"
+    echo -e "${RED}7. 一键关闭防火墙(UFW)${NC}"
+    echo -e "${RED}8. 一键关闭root远程登录${NC}"
     echo "0. 返回主菜单"
-    read -p "请选择 (0-7): " subchoice
+    read -p "请选择 (0-8): " subchoice
     case $subchoice in
         1)
             echo "修改VPS密码..."
@@ -517,26 +632,39 @@ vps_security_tools() {
             back_to_menu vps_security_tools
             ;;
         3)
+            read -p "请输入新的SSH端口号(1-65535): " new_port
+            if [[ $new_port =~ ^[0-9]+$ ]] && [ $new_port -ge 1 ] && [ $new_port -le 65535 ]; then
+                echo "正在修改SSH端口为 $new_port..."
+                sed -i "s/^#\?Port 22/Port $new_port/" /etc/ssh/sshd_config
+                systemctl restart ssh
+                echo -e "${GREEN}SSH端口已成功修改为 $new_port${NC}"
+                echo -e "${YELLOW}请确保新端口 $new_port 已在防火墙中开放${NC}"
+            else
+                echo -e "${RED}无效的端口号，请输入1-65535之间的数字${NC}"
+            fi
+            back_to_menu vps_security_tools
+            ;;
+        4)
             echo "一键修改为密钥登录..."
             bash -c "$(curl -L https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/authorized_keys.sh)"
             back_to_menu vps_security_tools
             ;;
-        4)
+        5)
             echo "恢复密码登录【已安装3才可用】..."
             bash /root/restore_ssh_password_auth.sh
             back_to_menu vps_security_tools
             ;;
-        5)
+        6)
             echo "开启UFW防火墙..."
             ufw enable
             back_to_menu vps_security_tools
             ;;
-        6)
+        7)
             echo "关闭UFW防火墙..."
             ufw disable
             back_to_menu vps_security_tools
             ;;
-        7)
+        8)
             echo "关闭root远程登录..."
             sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
             back_to_menu vps_security_tools
