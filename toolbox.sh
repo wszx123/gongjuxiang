@@ -496,49 +496,49 @@ classic_apps() {
 vps_security_tools() {
     clear
     echo -e "${GREEN}=== VPS安全工具 ===${NC}"
-    echo "1. 一键关闭root远程登录"
-    echo "2. 一键开启防火墙(UFW)"
-    echo "3. 一键关闭防火墙(UFW)"
-    echo "4. 修改VPS密码"
-    echo "5. 修改VPS 22端口"
-    echo "6. 一键修改为密钥登录"
-    echo "7. 恢复密码登录【已安装6才可用】"
+    echo "1. 修改VPS密码"
+    echo "2. 修改VPS 22端口"
+    echo "3. 一键修改为密钥登录"
+    echo "4. 恢复密码登录【已安装3才可用】"
+    echo "5. 一键开启防火墙(UFW)"
+    echo "6. 一键关闭防火墙(UFW)"
+    echo "7. 一键关闭root远程登录"
     echo "0. 返回主菜单"
     read -p "请选择 (0-7): " subchoice
     case $subchoice in
         1)
-            echo "关闭root远程登录..."
-            sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
-            back_to_menu vps_security_tools
-            ;;
-        2)
-            echo "开启UFW防火墙..."
-            ufw enable
-            back_to_menu vps_security_tools
-            ;;
-        3)
-            echo "关闭UFW防火墙..."
-            ufw disable
-            back_to_menu vps_security_tools
-            ;;
-        4)
             echo "修改VPS密码..."
             passwd
             back_to_menu vps_security_tools
             ;;
-        5)
+        2)
             echo "修改VPS 22端口为50100..."
             sed -i 's/^#\?Port 22/Port 50100/' /etc/ssh/sshd_config && systemctl restart ssh
             back_to_menu vps_security_tools
             ;;
-        6)
+        3)
             echo "一键修改为密钥登录..."
             bash -c "$(curl -L https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/authorized_keys.sh)"
             back_to_menu vps_security_tools
             ;;
-        7)
-            echo "恢复密码登录【已安装6才可用】..."
+        4)
+            echo "恢复密码登录【已安装3才可用】..."
             bash /root/restore_ssh_password_auth.sh
+            back_to_menu vps_security_tools
+            ;;
+        5)
+            echo "开启UFW防火墙..."
+            ufw enable
+            back_to_menu vps_security_tools
+            ;;
+        6)
+            echo "关闭UFW防火墙..."
+            ufw disable
+            back_to_menu vps_security_tools
+            ;;
+        7)
+            echo "关闭root远程登录..."
+            sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
             back_to_menu vps_security_tools
             ;;
         0) main_menu ;;
