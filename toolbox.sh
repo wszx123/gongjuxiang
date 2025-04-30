@@ -383,8 +383,8 @@ docker_tools() {
     echo "2. 启动docker"
     echo "3. 查看docker"
     echo "4. 安装docker2"
-    echo "5. 停止docker"
-    echo "6. 删除docker"
+    echo "5. 停止指定docker容器"
+    echo "6. 删除指定docker容器"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-6): " subchoice
@@ -411,15 +411,29 @@ docker_tools() {
             back_to_menu docker_tools
             ;;
         5)
-            echo "停止docker..."
-            systemctl stop docker
+            echo "当前运行的Docker容器："
+            docker ps
+            read -p "请输入要停止的容器名称或ID: " container_name
+            if [ ! -z "$container_name" ]; then
+                echo "正在停止容器 $container_name..."
+                docker stop $container_name
+                echo -e "${GREEN}容器 $container_name 已停止${NC}"
+            else
+                echo -e "${RED}未输入容器名称或ID${NC}"
+            fi
             back_to_menu docker_tools
             ;;
         6)
-            echo "删除docker..."
-            apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-            rm -rf /var/lib/docker
-            rm -rf /var/lib/containerd
+            echo "当前运行的Docker容器："
+            docker ps -a
+            read -p "请输入要删除的容器名称或ID: " container_name
+            if [ ! -z "$container_name" ]; then
+                echo "正在删除容器 $container_name..."
+                docker rm -f $container_name
+                echo -e "${GREEN}容器 $container_name 已删除${NC}"
+            else
+                echo -e "${RED}未输入容器名称或ID${NC}"
+            fi
             back_to_menu docker_tools
             ;;
         0) main_menu ;;
