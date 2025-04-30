@@ -383,9 +383,11 @@ docker_tools() {
     echo "2. 启动docker"
     echo "3. 查看docker"
     echo "4. 安装docker2"
+    echo "5. 停止docker"
+    echo "6. 删除docker"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-4): " subchoice
+    read -p "请选择 (0-6): " subchoice
     
     case $subchoice in
         1)
@@ -406,6 +408,18 @@ docker_tools() {
         4)
             echo "安装docker2..."
             wget -O install_docker.sh "https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/install_docker.sh" && chmod +x install_docker.sh && ./install_docker.sh
+            back_to_menu docker_tools
+            ;;
+        5)
+            echo "停止docker..."
+            systemctl stop docker
+            back_to_menu docker_tools
+            ;;
+        6)
+            echo "删除docker..."
+            apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            rm -rf /var/lib/docker
+            rm -rf /var/lib/containerd
             back_to_menu docker_tools
             ;;
         0) main_menu ;;
