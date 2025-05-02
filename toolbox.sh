@@ -380,14 +380,15 @@ docker_tools() {
     clear
     echo -e "${GREEN}=== Docker 工具 ===${NC}"
     echo "1. 安装docker"
-    echo "2. 启动docker"
+    echo "2. 启动docker【进入目录后启动】"
     echo "3. 查看docker"
     echo "4. 安装docker2"
     echo "5. 停止指定docker容器"
-    echo "6. 删除指定docker容器"
+    echo "6. 启动指定docker容器"
+    echo "7. 删除指定docker容器"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-6): " subchoice
+    read -p "请选择 (0-7): " subchoice
     
     case $subchoice in
         1)
@@ -396,7 +397,7 @@ docker_tools() {
             back_to_menu docker_tools
             ;;
         2)
-            echo "启动docker..."
+            echo "启动docker【进入目录后启动】..."
             docker-compose up -d
             back_to_menu docker_tools
             ;;
@@ -424,6 +425,19 @@ docker_tools() {
             back_to_menu docker_tools
             ;;
         6)
+            echo "当前未运行的Docker容器："
+            docker ps -a --filter "status=exited"
+            read -p "请输入要启动的容器名称或ID: " container_name
+            if [ ! -z "$container_name" ]; then
+                echo "正在启动容器 $container_name..."
+                docker start $container_name
+                echo -e "${GREEN}容器 $container_name 已启动${NC}"
+            else
+                echo -e "${RED}未输入容器名称或ID${NC}"
+            fi
+            back_to_menu docker_tools
+            ;;
+        7)
             echo "当前运行的Docker容器："
             docker ps -a
             read -p "请输入要删除的容器名称或ID: " container_name
