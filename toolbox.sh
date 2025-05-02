@@ -25,13 +25,17 @@ common_commands() {
     echo "6. F大warp添加IPV4"
     echo "7. 安装hy2"
     echo "8. 安装 3X-UI"
-    echo "9. 融合怪命令1【综合测试】"
-    echo "10. 融合怪命令2【三网测试】"
-    echo "11. 解锁测试"
-    echo "12. 更新系统"
+    echo "9. 安装F大argox隧道"
+    echo "10. 删除argox脚本"
+    echo "11. 梭哈脚本"
+    echo "12. 查看梭哈"
+    echo "13. 融合怪命令1【综合测试】"
+    echo "14. 融合怪命令2【三网测试】"
+    echo "15. 解锁测试"
+    echo "16. 更新系统"
     echo "0. 返回主菜单"
     
-    read -p "请选择 (0-12): " choice
+    read -p "请选择 (0-16): " choice
     
     case $choice in
         1)
@@ -186,21 +190,41 @@ common_commands() {
             main_menu 
             ;;
         9)
+            echo "安装F大argox隧道..."
+            bash <(wget -qO- https://raw.githubusercontent.com/fscarmen/argox/main/argox.sh)
+            main_menu 
+            ;;
+        10)
+            echo "删除argox脚本..."
+            argox -u
+            main_menu 
+            ;;
+        11)
+            echo "执行梭哈脚本..."
+            curl https://raw.githubusercontent.com/wszx123/ArgoX/main/suoha.sh -o suoha.sh && bash suoha.sh
+            main_menu 
+            ;;
+        12)
+            echo "查看梭哈..."
+            cat v2ray.txt
+            main_menu 
+            ;;
+        13)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
-        10)
+        14)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
-        11)
+        15)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
-        12)
+        16)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
@@ -570,7 +594,7 @@ caddy_tools() {
 # 经典应用函数
 classic_apps() {
     clear
-    echo -e "${GREEN}=== 经典应用 ===${NC}"
+    echo -e "${GREEN}=== 经典应用【未完成】 ===${NC}"
     echo "1. Cloudreve网盘"
     echo "2. 简单图床图片管理程序"
     echo "3. webssh网页版SSH连接工具"
@@ -722,7 +746,7 @@ main_menu() {
     echo -e "${GREEN}=== Linux 命令工具箱 ===${NC}"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
-    echo "3. 经典应用"
+    echo "3. 经典应用【未完成】"
     echo "4. 抢鸡工具"
     echo "5. 重装系统"
     echo "6. 开小鸡工具"
