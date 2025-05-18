@@ -681,11 +681,13 @@ vps_security_tools() {
     echo "3. 修改VPS端口为任意端口"
     echo "4. 一键修改为密钥登录"
     echo "5. 恢复密码登录【已安装3才可用】"
-    echo "6. 一键开启防火墙(UFW)"
-    echo -e "${RED}7. 一键关闭防火墙(UFW)${NC}"
-    echo -e "${RED}8. 一键关闭root远程登录${NC}"
-    echo "9. 查看登录次数"
-    echo "10. 备份指定文件夹"
+
+    echo "6. 查看登录次数"
+    echo "7. 备份指定文件夹"
+
+    echo "8. 一键开启防火墙(UFW)"
+    echo -e "${RED}9. 一键关闭防火墙(UFW)${NC}"
+    echo -e "${RED}10. 一键关闭root远程登录${NC}"
     echo "0. 返回主菜单"
     read -p "请选择 (0-10): " subchoice
     case $subchoice in
@@ -723,21 +725,6 @@ vps_security_tools() {
             back_to_menu vps_security_tools
             ;;
         6)
-            echo "开启UFW防火墙..."
-            ufw enable
-            back_to_menu vps_security_tools
-            ;;
-        7)
-            echo "关闭UFW防火墙..."
-            ufw disable
-            back_to_menu vps_security_tools
-            ;;
-        8)
-            echo "关闭root远程登录..."
-            sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
-            back_to_menu vps_security_tools
-            ;;
-        9)
             echo "查看登录次数..."
             echo "1. 查看登录失败次数"
             echo "2. 查看登录成功次数及IP"
@@ -757,7 +744,7 @@ vps_security_tools() {
             esac
             back_to_menu vps_security_tools
             ;;
-        10)
+        7)
             echo "备份指定文件夹..."
             read -p "请输入要备份的文件夹路径: " folder_path
             if [ -d "$folder_path" ]; then
@@ -770,6 +757,22 @@ vps_security_tools() {
             fi
             back_to_menu vps_security_tools
             ;;
+        8)
+            echo "开启UFW防火墙..."
+            ufw enable
+            back_to_menu vps_security_tools
+            ;;
+        9)
+            echo "关闭UFW防火墙..."
+            ufw disable
+            back_to_menu vps_security_tools
+            ;;
+        10)
+            echo "关闭root远程登录..."
+            sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
+            back_to_menu vps_security_tools
+            ;;
+
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; vps_security_tools ;;
     esac
