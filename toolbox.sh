@@ -685,8 +685,9 @@ vps_security_tools() {
     echo -e "${RED}7. 一键关闭防火墙(UFW)${NC}"
     echo -e "${RED}8. 一键关闭root远程登录${NC}"
     echo "9. 查看登录次数"
+    echo "10. 备份指定文件夹"
     echo "0. 返回主菜单"
-    read -p "请选择 (0-9): " subchoice
+    read -p "请选择 (0-10): " subchoice
     case $subchoice in
         1)
             echo "修改VPS密码..."
@@ -739,6 +740,19 @@ vps_security_tools() {
         9)
             echo "查看登录次数..."
             echo -e "${GREEN}登录失败次数: $(lastb | wc -l)${NC}"
+            back_to_menu vps_security_tools
+            ;;
+        10)
+            echo "备份指定文件夹..."
+            read -p "请输入要备份的文件夹路径: " folder_path
+            if [ -d "$folder_path" ]; then
+                mkdir -p /home/backup
+                backup_file="/home/backup/backup_$(date +%Y%m%d%H%M%S).zip"
+                zip -r $backup_file $folder_path
+                echo -e "${GREEN}备份完成，备份文件保存在: $backup_file${NC}"
+            else
+                echo -e "${RED}指定的文件夹路径不存在，请检查后重试${NC}"
+            fi
             back_to_menu vps_security_tools
             ;;
         0) main_menu ;;
