@@ -739,7 +739,22 @@ vps_security_tools() {
             ;;
         9)
             echo "查看登录次数..."
-            echo -e "${GREEN}登录失败次数: $(lastb | wc -l)${NC}"
+            echo "1. 查看登录失败次数"
+            echo "2. 查看登录成功次数及IP"
+            read -p "请选择 (1-2): " login_choice
+            case $login_choice in
+                1)
+                    echo -e "${GREEN}登录失败次数: $(lastb | wc -l)${NC}"
+                    ;;
+                2)
+                    echo -e "${GREEN}登录成功次数: $(last | grep -v 'reboot' | wc -l)${NC}"
+                    echo -e "${GREEN}登录成功的IP地址:${NC}"
+                    last | grep -v 'reboot' | awk '{print $3}' | sort | uniq -c | sort -nr
+                    ;;
+                *)
+                    echo -e "${RED}无效选择${NC}"
+                    ;;
+            esac
             back_to_menu vps_security_tools
             ;;
         10)
