@@ -351,7 +351,7 @@ system_reinstall() {
             back_to_menu system_reinstall
             ;;
         6)
-            echo "执行一键重装debian11【密码为KKK12356ws01，重装后要修改，虚拟内荐1G】..."
+            echo "执行一键重装debian11【密码为KKK12356ws01，重装后要修改，虚拟内存1G】..."
             bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 11 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
             back_to_menu system_reinstall
             ;;
@@ -361,7 +361,7 @@ system_reinstall() {
             back_to_menu system_reinstall
             ;;
         8)
-            echo "执行一键重装debian12【密码为KKK12356ws01，重装后要修改，虚拟内荐1G】..."
+            echo "执行一键重装debian12【密码为KKK12356ws01，重装后要修改，虚拟内存1G】..."
             bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 12 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
             back_to_menu system_reinstall
             ;;
@@ -684,8 +684,9 @@ vps_security_tools() {
     echo "6. 一键开启防火墙(UFW)"
     echo -e "${RED}7. 一键关闭防火墙(UFW)${NC}"
     echo -e "${RED}8. 一键关闭root远程登录${NC}"
+    echo "9. 查看登录次数"
     echo "0. 返回主菜单"
-    read -p "请选择 (0-8): " subchoice
+    read -p "请选择 (0-9): " subchoice
     case $subchoice in
         1)
             echo "修改VPS密码..."
@@ -733,6 +734,11 @@ vps_security_tools() {
         8)
             echo "关闭root远程登录..."
             sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
+            back_to_menu vps_security_tools
+            ;;
+        9)
+            echo "查看登录次数..."
+            echo -e "${GREEN}登录失败次数: $(lastb | wc -l)${NC}"
             back_to_menu vps_security_tools
             ;;
         0) main_menu ;;
