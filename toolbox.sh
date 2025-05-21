@@ -688,6 +688,7 @@ vps_security_tools() {
     echo "8. 一键开启防火墙(UFW)"
     echo -e "${RED}9. 一键关闭防火墙(UFW)${NC}"
     echo -e "${RED}10. 一键关闭root远程登录${NC}"
+    echo "11. 开放所有端口"
     echo "0. 返回主菜单"
     read -p "请选择 (0-10): " subchoice
     case $subchoice in
@@ -772,7 +773,13 @@ vps_security_tools() {
             sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart ssh
             back_to_menu vps_security_tools
             ;;
-
+        11)
+            echo "开放所有端口..."
+            ufw allow 1:65535/tcp
+            ufw allow 1:65535/udp
+            echo -e "${GREEN}所有端口已开放${NC}"
+            back_to_menu vps_security_tools
+            ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; vps_security_tools ;;
     esac
