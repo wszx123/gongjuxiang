@@ -573,16 +573,18 @@ menu() {
     echo " -------------"
     echo -e " ${GREEN}0.${PLAIN} 退出脚本"
     echo ""
-    read -rp "请输入选项 [0-5]: " menuInput
-    case $menuInput in
-        1 ) insthysteria ;;
-        2 ) unsthysteria ;;
-        3 ) hysteriaswitch ;;
-        4 ) changeconf ;;
-        5 ) showconf ;;
-        6 ) update_core ;;
-        * ) exit 1 ;;
-    esac
+read -rp "请输入选项 [1-6]（默认 1）: " menuInput
+menuInput=${menuInput:-1}  # 如果为空，则默认选择1
+
+case $menuInput in
+    1 ) insthysteria ;;
+    2 ) unsthysteria ;;
+    3 ) hysteriaswitch ;;
+    4 ) changeconf ;;
+    5 ) showconf ;;
+    6 ) update_core ;;
+    * ) echo "无效选项，退出。" && exit 1 ;;
+esac
 }
 
 menu
