@@ -366,7 +366,7 @@ dns:
     - 1.1.1.1
     - 114.114.114.114
 proxies:
-  - name: Misaka-Hysteria2
+  - name: M9527-Hy2
     type: hysteria2
     server: $last_ip
     port: $port
@@ -377,15 +377,15 @@ proxy-groups:
   - name: Proxy
     type: select
     proxies:
-      - Misaka-Hysteria2
+      - M9527-Hy2
       
 rules:
   - GEOIP,CN,DIRECT
   - MATCH,Proxy
 EOF
-    url="hysteria2://$auth_pwd@$last_ip:$last_port/?insecure=1&sni=$hy_domain#Misaka-Hysteria2"
+    url="hysteria2://$auth_pwd@$last_ip:$last_port/?insecure=1&sni=$hy_domain#M9527-Hy2"
     echo $url > /root/hy/url.txt
-    nohopurl="hysteria2://$auth_pwd@$last_ip:$port/?insecure=1&sni=$hy_domain#Misaka-Hysteria2"
+    nohopurl="hysteria2://$auth_pwd@$last_ip:$port/?insecure=1&sni=$hy_domain#M9527-Hy2"
     echo $nohopurl > /root/hy/url-nohop.txt
 
     systemctl daemon-reload
@@ -559,7 +559,7 @@ menu() {
     clear
     echo "#############################################################"
     echo -e "#                  ${RED}Hysteria 2 一键安装脚本${PLAIN}                  #"
-    echo -e "# ${GREEN}作者${PLAIN}: MisakaNo の 小破站，感谢！                                  #"
+    echo -e "# ${GREEN}作者${PLAIN}: MisakaNo の 小破站，感谢！                        #"
     echo "#############################################################"
     echo ""
     echo -e " ${GREEN}1.${PLAIN} 安装 Hysteria 2"
