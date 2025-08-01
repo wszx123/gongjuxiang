@@ -24,3 +24,8 @@ wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/toolb
 ```
 curl -o toolbox.sh https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/toolbox.sh && chmod +x toolbox.sh && ./toolbox.sh
 ```
+# 四、添加hy2键脚本【来自Misaka：https://github.com/Misaka-blog/hysteria-install，感谢】
+- 一键脚本：
+```
+wget -N --no-check-certificate https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/hy2/hysteria.sh && bash hysteria.sh
+```
