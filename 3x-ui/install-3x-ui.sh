@@ -210,24 +210,24 @@ install_x-ui() {
     systemctl start x-ui
     echo -e "${green}x-ui ${tag_version}${plain} 安装完成，服务已启动。"
     echo -e ""
-    echo -e "┌─────────────────────────────────────────────┐
-│  ${blue}x-ui 常用命令说明：${plain}                   │
-│                                               │
-│  ${blue}x-ui${plain}              - 管理脚本菜单       │
-│  ${blue}x-ui start${plain}        - 启动服务           │
-│  ${blue}x-ui stop${plain}         - 停止服务           │
-│  ${blue}x-ui restart${plain}      - 重启服务           │
-│  ${blue}x-ui status${plain}       - 查看运行状态       │
-│  ${blue}x-ui settings${plain}     - 查看当前设置       │
-│  ${blue}x-ui enable${plain}       - 设置开机自启       │
-│  ${blue}x-ui disable${plain}      - 禁用开机自启       │
-│  ${blue}x-ui log${plain}          - 查看运行日志       │
-│  ${blue}x-ui banlog${plain}       - 查看封禁日志       │
-│  ${blue}x-ui update${plain}       - 更新 x-ui          │
-│  ${blue}x-ui legacy${plain}       - 旧版兼容支持       │
-│  ${blue}x-ui install${plain}      - 安装 x-ui          │
-│  ${blue}x-ui uninstall${plain}    - 卸载 x-ui          │
-└─────────────────────────────────────────────┘"
+    echo -e "#################################################
+  ${blue}x-ui 常用命令说明：${plain}
+─────────────────────────
+  ${blue}x-ui${plain}              - 管理脚本菜单
+  ${blue}x-ui start${plain}        - 启动服务
+  ${blue}x-ui stop${plain}         - 停止服务
+  ${blue}x-ui restart${plain}      - 重启服务
+  ${blue}x-ui status${plain}       - 查看运行状态
+  ${blue}x-ui settings${plain}     - 查看当前设置
+  ${blue}x-ui enable${plain}       - 设置开机自启
+  ${blue}x-ui disable${plain}      - 禁用开机自启
+  ${blue}x-ui log${plain}          - 查看运行日志
+  ${blue}x-ui banlog${plain}       - 查看封禁日志
+  ${blue}x-ui update${plain}       - 更新 x-ui
+  ${blue}x-ui legacy${plain}       - 旧版兼容支持
+  ${blue}x-ui install${plain}      - 安装 x-ui
+  ${blue}x-ui uninstall${plain}    - 卸载 x-ui
+#################################################"
 }
 
 echo -e "${green}开始执行脚本...${plain}"
