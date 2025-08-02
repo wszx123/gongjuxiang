@@ -33,7 +33,7 @@ wget -N --no-check-certificate https://raw.githubusercontent.com/wszx123/gongjux
 ```
 
 # 五、添加3x-ui一键脚本
-- 【来自MHSanaei：[https://github.com/Misaka-blog/hysteria-install](https://github.com/MHSanaei/3x-ui)，感谢】
+- 功能不变，汉化。【来自MHSanaei：[https://github.com/Misaka-blog/hysteria-install](https://github.com/MHSanaei/3x-ui)，感谢】
 - 一键脚本：
 ```
 bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/3x-ui/install-3x-ui.sh)
