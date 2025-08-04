@@ -16,15 +16,17 @@ back_to_menu() {
 # 常用命令函数
 common_commands() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== 常用命令 ===${NC}"
+    echo "#############################################################"
     echo "1. 系统信息查询"
     echo "2. 系统优化"
-    echo "3. 一键升级"
+    echo "3. ★一键升级"
     echo "4. X-UI-F大"
     echo "5. X-UI-F大独立版"
     echo "6. F大warp添加IPV4"
-    echo "7. 安装hy2"
-    echo "8. 安装 3X-UI"
+    echo "7. ★安装hy2"
+    echo "8. ★安装 3X-UI"
     echo "9. 安装F大argox隧道"
     echo "10. 删除argox脚本"
     echo "11. 梭哈脚本"
@@ -161,7 +163,7 @@ common_commands() {
             ;;
         3)
             echo "执行一键升级..."
-            apt update -y && apt install curl wget -y && apt update && apt install curl wget
+            apt update && apt install -y curl wget unzip zip
             main_menu 
             ;;
         4)
@@ -181,12 +183,12 @@ common_commands() {
             ;;
         7)
             echo "安装hy2..."
-            wget -N --no-check-certificate https://raw.githubusercontent.com/Misaka-blog/hysteria-install/main/hy2/hysteria.sh && bash hysteria.sh
+            wget -N --no-check-certificate https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/hy2/hysteria.sh && bash hysteria.sh
             main_menu 
             ;;
         8)
             echo "安装3X-UI..."
-            bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+            bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/3x-ui/install-3x-ui.sh)
             main_menu 
             ;;
         9)
@@ -243,7 +245,9 @@ fi
 # VPS安装工具函数
 vps_install() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== VPS 安装工具 ===${NC}"
+    echo "#############################################################"
     echo "1. 安装unzip"
     echo "2. 安装zip"
     echo "3. 安装curl"
@@ -309,7 +313,9 @@ vps_grab() {
 # 重装系统函数
 system_reinstall() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== 重装系统 ===${NC}"
+    echo "#############################################################"
     echo "1. 命令1-必须，密码为LeitboGi0ro，重装后必须修改"
     echo "2. 命令2-安装Debian 12，密码为LeitboGi0ro，重装后必须修改"
     echo "3. 命令3-安装Ubuntu 22.04，密码为LeitboGi0ro，重装后必须修改"
@@ -382,7 +388,9 @@ system_reinstall() {
 # 开小鸡工具函数
 vps_create() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== 开小鸡工具 ===${NC}"
+    echo "#############################################################"
     echo "1. LXD开LXC小鸡"
     echo "2. Pve开LXC小鸡"
     echo "3. Pve开KVM或LXC小鸡"
@@ -402,7 +410,9 @@ vps_create() {
 # Docker工具函数
 docker_tools() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== Docker 工具 ===${NC}"
+    echo "#############################################################"
     echo "1. 安装docker"
     echo "2. 启动docker【进入目录后启动】"
     echo "3. 查看docker"
@@ -482,7 +492,9 @@ docker_tools() {
 # 哪吒面板函数
 nezha_panel() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== 哪吒面板 ===${NC}"
+    echo "#############################################################"
     echo "1. v1哪吒"
     echo "2. 执行命令"
     echo "3. 清除v1 agent"
@@ -520,8 +532,10 @@ nezha_panel() {
 # Caddy2工具函数
 caddy_tools() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== Caddy2 工具 ===${NC}"
-    echo "1. 关闭防火墙"
+    echo "#############################################################"
+    echo "1. 关闭防火墙【可不关闭】"
     echo "2. 安装必要的软件包"
     echo "3. 添加Caddy的安全密钥"
     echo "4. 下载Caddy密钥文件"
@@ -594,7 +608,9 @@ caddy_tools() {
 # 经典应用函数
 classic_apps() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== 经典应用【未完成】 ===${NC}"
+    echo "#############################################################"
     echo "1. Cloudreve网盘"
     echo "2. 简单图床图片管理程序"
     echo "3. webssh网页版SSH连接工具"
@@ -675,7 +691,9 @@ classic_apps() {
 # VPS安全工具函数
 vps_security_tools() {
     clear
+    echo "#############################################################"
     echo -e "${GREEN}=== VPS安全工具 ===${NC}"
+    echo "#############################################################"
     echo "1. 修改VPS密码"
     echo "2. 修改VPS 22端口为50100"
     echo "3. 修改VPS端口为任意端口"
@@ -788,7 +806,9 @@ vps_security_tools() {
 # 主菜单函数
 main_menu() {
     clear
-    echo -e "${GREEN}=== Linux 命令工具箱 ===${NC}"
+    echo "#############################################################"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.4 ===${NC}"
+    echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
     echo "3. 经典应用【未完成】"
