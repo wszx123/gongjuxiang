@@ -33,8 +33,13 @@ install_env() {
     sudo apt install -y caddy
 
     echo "===== 启用 PHP-FPM 和 Caddy ====="
-    sudo systemctl enable php${PHP_VER}-fpm
-    sudo systemctl restart php${PHP_VER}-fpm
+    if systemctl list-unit-files | grep -q "php${PHP_VER}-fpm.service"; then
+        sudo systemctl enable php${PHP_VER}-fpm
+        sudo systemctl restart php${PHP_VER}-fpm
+    else
+        sudo systemctl enable --now php*-fpm || true
+    fi
+
     sudo systemctl enable caddy
     sudo systemctl restart caddy
 
