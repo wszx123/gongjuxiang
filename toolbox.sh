@@ -609,19 +609,19 @@ caddy_tools() {
 install_php_caddy() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy ===${NC}"
+    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【无数据库】 ===${NC}"
     echo "#############################################################"
-    echo "1. 🧰 在 Debian 11/12 上安装 PHP 8.2 + Caddy..."
-    echo "2. 📦 安装依赖..."
-    echo "3. 🔑 添加 PHP 8.2 官方源（Sury）..."
-    echo "4. 🔄 更新软件包列表..."
-    echo "5. 📦 安装 PHP 8.2 和常用扩展..."
+    echo "1. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【无数据库】..."
+    echo "2. 安装依赖..."
+    echo "3. 添加 PHP 8.2 官方源（Sury）..."
+    echo "4. 更新软件包列表..."
+    echo "5. ★安装 PHP 8.2 和常用扩展..."
     echo "6. 启用 PHP-FPM 服务"
-    echo "7. 🌐 添加 Caddy 官方源..."
-    echo "8. 📦 安装 Caddy Web Server..."
-    echo "9. 📁 创建网站目录 /home/html/web/[自定义]..."
-    echo "10. 📝 配置 Caddyfile【提前解析好域名】..."
-    echo "11. 🚀 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】..."
+    echo "7. 添加 Caddy 官方源..."
+    echo "8. ★安装 Caddy Web Server..."
+    echo "9. 创建网站目录 /home/html/web/[自定义]..."
+    echo "10. 配置 Caddyfile【提前解析好域名】..."
+    echo "11. 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】..."
     echo "12. 查看安装结果"
     echo "0. 返回主菜单"
     
@@ -629,28 +629,28 @@ install_php_caddy() {
     
     case $step_choice in
         1)
-            echo "🧰 在 Debian 11/12 上安装 PHP 8.2 + Caddy..."
+            echo "在 Debian 11/12 上安装 PHP 8.2 + Caddy【无数据库】..."
             back_to_menu install_php_caddy
             ;;
         2)
-            echo "📦 安装依赖..."
+            echo "安装依赖..."
             sudo apt update
             sudo apt install -y lsb-release apt-transport-https ca-certificates curl gnupg2 unzip debian-keyring debian-archive-keyring
             back_to_menu install_php_caddy
             ;;
         3)
-            echo "🔑 添加 PHP 8.2 官方源（Sury）..."
+            echo "添加 PHP 8.2 官方源（Sury）..."
             curl -fsSL https://packages.sury.org/php/apt.gpg | sudo gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
             echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list
             back_to_menu install_php_caddy
             ;;
         4)
-            echo "🔄 更新软件包列表..."
+            echo "更新软件包列表..."
             sudo apt update
             back_to_menu install_php_caddy
             ;;
         5)
-            echo "📦 安装 PHP 8.2 和常用扩展..."
+            echo "★安装 PHP 8.2 和常用扩展..."
             sudo apt install -y php8.2 php8.2-fpm php8.2-mysql php8.2-cli php8.2-curl php8.2-gd php8.2-mbstring php8.2-xml php8.2-zip
             back_to_menu install_php_caddy
             ;;
@@ -661,19 +661,19 @@ install_php_caddy() {
             back_to_menu install_php_caddy
             ;;
         7)
-            echo "🌐 添加 Caddy 官方源..."
+            echo "添加 Caddy 官方源..."
             curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
             curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
             back_to_menu install_php_caddy
             ;;
         8)
-            echo "📦 安装 Caddy Web Server..."
+            echo "★安装 Caddy Web Server..."
             sudo apt update
             sudo apt install -y caddy
             back_to_menu install_php_caddy
             ;;
         9)
-            echo "📁 创建网站目录 /home/html/web/[自定义]..."
+            echo "创建网站目录 /home/html/web/[自定义]..."
             read -p "请输入最后一级目录名称(例如web1): " custom_dir
             # 验证输入不为空且不包含非法字符
             while [[ -z "$custom_dir" ]] || [[ "$custom_dir" =~ [/\:\*\?\"\<\>\|] ]]; do
@@ -692,7 +692,7 @@ install_php_caddy() {
             back_to_menu install_php_caddy
             ;;
         10)
-            echo "📝 配置 Caddyfile【提前解析好域名】..."
+            echo "配置 Caddyfile【提前解析好域名】..."
             # 先获取用户想要设置的目录名
             read -p "请输入之前设置的最后一级目录名称(例如web1): " dir_name
             while [[ -z "$dir_name" ]]; do
@@ -719,7 +719,7 @@ EOF
             back_to_menu install_php_caddy
             ;;
         11)
-            echo "🚀 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】..."
+            echo "启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】..."
             sudo systemctl restart php8.2-fpm
             sudo systemctl enable php8.2-fpm
             sudo systemctl restart caddy
@@ -727,15 +727,15 @@ EOF
             back_to_menu install_php_caddy
             ;;
         12)
-            echo "✅ 部署完成！"
+            echo "部署完成！"
             read -p "请输入之前设置的最后一级目录名称(例如web1): " final_dir
             while [[ -z "$final_dir" ]]; do
                 echo -e "${RED}目录名称不能为空！${NC}"
                 read -p "请重新输入最后一级目录名称: " final_dir
             done
             
-            echo "📂 网站目录：/home/html/web/$final_dir"
-            echo "🌐 访问地址：http://example1.com （请解析域名）"
+            echo "网站目录：/home/html/web/$final_dir"
+            echo "访问地址：http://example1.com （请解析域名）"
             back_to_menu install_php_caddy
             ;;
         0) main_menu ;;
@@ -945,7 +945,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.4 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.8 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
@@ -957,7 +957,7 @@ main_menu() {
     echo "8. 哪吒面板"
     echo "9. Caddy2 工具"
     echo "10. VPS安全工具"
-    echo "11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy"
+    echo "11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【无数据库】"
     echo "0. 退出"
     
     read -p "请选择功能 (0-11): " choice
