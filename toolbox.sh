@@ -623,9 +623,16 @@ install_php_caddy() {
     echo "10. 配置 Caddyfile【提前解析好域名】..."
     echo "11. 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】..."
     echo "12. 查看安装结果"
+    echo "13. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】..."
+    echo "14. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
+    echo "15. 登录 MariaDB..."
+    echo "16. 创建数据库..."
+    echo "17. 给用户授权..."
+    echo "18. 退出数据库..."
+    echo "19. 显示示例配置（适用于 WordPress/phpMyAdmin 等）..."
     echo "0. 返回主菜单"
     
-    read -p "请选择要执行的步骤 (0-12): " step_choice
+    read -p "请选择要执行的步骤 (0-19): " step_choice
     
     case $step_choice in
         1)
@@ -736,6 +743,90 @@ EOF
             
             echo "网站目录：/home/html/web/$final_dir"
             echo "访问地址：http://example1.com （请解析域名）"
+            back_to_menu install_php_caddy
+            ;;
+        13)
+            echo "安装MariaDB（兼容 MySQL）..."
+            sudo apt update
+            sudo apt install -y mariadb-server
+            sudo systemctl enable mariadb
+            sudo systemctl start mariadb
+            echo -e "${GREEN}MariaDB安装完成并已启动！${NC}"
+            back_to_menu install_php_caddy
+            ;;
+        14)
+            echo "设置 root 密码..."
+            # 提示用户输入密码
+            read -sp "请输入MariaDB root用户密码（默认为rootpass123）: " db_password
+            echo
+            if [[ -z "$db_password" ]]; then
+                db_password="rootpass123"
+                echo -e "${YELLOW}使用默认密码: rootpass123${NC}"
+                echo -e "${RED}请务必修改默认密码为强密码！${NC}"
+            fi
+            
+            sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${db_password}'; FLUSH PRIVILEGES;"
+            echo -e "${GREEN}root用户密码设置成功！${NC}"
+            back_to_menu install_php_caddy
+            ;;
+        15)
+            echo "登录 MariaDB..."
+            echo "请手动执行命令: sudo mysql -u root -p"
+            echo "然后输入设置的密码"
+            back_to_menu install_php_caddy
+            ;;
+        16)
+            echo "创建数据库..."
+            read -p "请输入要创建的数据库名称（默认为mydb）: " db_name
+            if [[ -z "$db_name" ]]; then
+                db_name="mydb"
+                echo -e "${YELLOW}使用默认数据库名: mydb${NC}"
+            fi
+            
+            sudo mysql -e "CREATE DATABASE ${db_name} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+            echo -e "${GREEN}数据库 ${db_name} 创建成功！${NC}"
+            back_to_menu install_php_caddy
+            ;;
+        17)
+            echo "给用户授权..."
+            read -p "请输入要创建的用户名（默认为myuser）: " db_user
+            if [[ -z "$db_user" ]]; then
+                db_user="myuser"
+                echo -e "${YELLOW}使用默认用户名: myuser${NC}"
+            fi
+            
+            read -sp "请输入用户密码（默认为mypassword）: " db_user_password
+            echo
+            if [[ -z "$db_user_password" ]]; then
+                db_user_password="mypassword"
+                echo -e "${YELLOW}使用默认密码: mypassword${NC}"
+            fi
+            
+            read -p "请输入数据库名（默认为mydb）: " db_name
+            if [[ -z "$db_name" ]]; then
+                db_name="mydb"
+                echo -e "${YELLOW}使用默认数据库名: mydb${NC}"
+            fi
+            
+            sudo mysql -e "CREATE USER '${db_user}'@'localhost' IDENTIFIED BY '${db_user_password}';"
+            sudo mysql -e "GRANT ALL PRIVILEGES ON ${db_name}.* TO '${db_user}'@'localhost';"
+            sudo mysql -e "FLUSH PRIVILEGES;"
+            echo -e "${GREEN}用户授权完成！${NC}"
+            back_to_menu install_php_caddy
+            ;;
+        18)
+            echo "退出数据库..."
+            echo "请在数据库命令行中执行: quit;"
+            back_to_menu install_php_caddy
+            ;;
+        19)
+            echo "显示示例配置（适用于 WordPress/phpMyAdmin 等）:"
+            echo "========================================"
+            echo "数据库名: mydb"
+            echo "数据库用户名: root（或 myuser）"
+            echo "数据库密码: rootpass123（或 mypassword）"
+            echo "数据库主机: localhost"
+            echo "========================================"
             back_to_menu install_php_caddy
             ;;
         0) main_menu ;;
