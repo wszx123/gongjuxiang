@@ -1,12 +1,16 @@
 #!/bin/bash
+# PHP + Caddy 自动部署脚本
+# 适用于 Debian/Ubuntu 系统
 set -e
 
+# 配置变量
 CADDYFILE="/etc/caddy/Caddyfile"
 WEB_ROOT="/home/html/web"
 
 # 检测 PHP 版本
 PHP_VER=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;" 2>/dev/null || true)
 
+# 安装环境函数
 install_env() {
     echo "===== 更新系统 ====="
     sudo apt update && sudo apt upgrade -y
@@ -56,6 +60,7 @@ install_env() {
     echo "环境安装完成！"
 }
 
+# 添加站点函数
 add_site() {
     echo "请输入站点域名（HTTP 用 IP 或域名，HTTPS 用域名）："
     read DOMAIN
@@ -91,6 +96,7 @@ EOF
     echo "HTTP 访问: http://$DOMAIN"
 }
 
+# 显示菜单
 menu() {
     echo "============================"
     echo "  PHP + Caddy 多站点部署脚本"
@@ -109,6 +115,24 @@ menu() {
     esac
 }
 
-while true; do
-    menu
-done
+# 主程序循环
+# 如果提供了命令行参数，则直接执行对应功能
+if [ "$#" -gt 0 ]; then
+    case "$1" in
+        install)
+            install_env
+            ;;
+        add-site)
+            add_site
+            ;;
+        *)
+            echo "用法: $0 {install|add-site}"
+            exit 1
+            ;;
+    esac
+else
+    # 否则显示交互式菜单
+    while true; do
+        menu
+    done
+fi
