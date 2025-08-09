@@ -605,13 +605,13 @@ caddy_tools() {
     esac
 }
 
-# 在 Debian 11/12 上安装 PHP 8.2 + Caddy
+# 在 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】
 install_php_caddy() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【无数据库】 ===${NC}"
+    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】 ===${NC}"
     echo "#############################################################"
-    echo "1. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【无数据库】..."
+    echo "1. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】..."
     echo "2. 安装依赖..."
     echo "3. 添加 PHP 8.2 官方源（Sury）..."
     echo "4. 更新软件包列表..."
@@ -701,7 +701,7 @@ install_php_caddy() {
         10)
             echo "配置 Caddyfile【提前解析好域名】..."
             # 先获取用户想要设置的目录名
-            read -p "请输入之前设置的最后一级目录名称(例如web1): " dir_name
+            read -p "请输入最后一级目录名称(例如web1): " dir_name
             while [[ -z "$dir_name" ]]; do
                 echo -e "${RED}目录名称不能为空！${NC}"
                 read -p "请重新输入最后一级目录名称: " dir_name
@@ -714,14 +714,28 @@ install_php_caddy() {
                 read -p "请重新输入已解析好的域名: " domain_name
             done
             
-            sudo tee /etc/caddy/Caddyfile > /dev/null <<EOF
+            # 检查Caddyfile是否存在，如果不存在则创建
+            if [ ! -f /etc/caddy/Caddyfile ]; then
+                sudo touch /etc/caddy/Caddyfile
+            fi
+            
+            # 检查域名是否已存在于Caddyfile中
+            if grep -q "^$domain_name\s*{" /etc/caddy/Caddyfile; then
+                echo -e "${YELLOW}域名 $domain_name 已存在于Caddyfile中，跳过添加${NC}"
+            else
+                # 追加新配置到Caddyfile
+                sudo tee -a /etc/caddy/Caddyfile > /dev/null <<EOF
+
 $domain_name {
     root * /home/html/web/$dir_name
     php_fastcgi unix//run/php/php8.2-fpm.sock
     file_server
 }
 EOF
-            echo -e "${GREEN}Caddyfile配置完成，网站目录: /home/html/web/$dir_name${NC}"
+                echo -e "${GREEN}已将新域名 $domain_name 添加到 Caddyfile${NC}"
+            fi
+            
+            echo -e "${GREEN}网站目录: /home/html/web/$dir_name${NC}"
             echo -e "${GREEN}绑定域名: $domain_name${NC}"
             back_to_menu install_php_caddy
             ;;
@@ -1048,7 +1062,7 @@ main_menu() {
     echo "8. 哪吒面板"
     echo "9. Caddy2 工具"
     echo "10. VPS安全工具"
-    echo "11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【无数据库】"
+    echo "11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】"
     echo "0. 退出"
     
     read -p "请选择功能 (0-11): " choice
