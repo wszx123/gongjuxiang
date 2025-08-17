@@ -786,8 +786,7 @@ EOF
         15)
             echo "登录 MariaDB..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
-            sudo mysql -u root -p
-            echo "已退出 MariaDB。"
+            echo "登录 MariaDB 完成，将返回菜单继续执行后续操作..."
             back_to_menu install_php_caddy
             ;;
         16)
@@ -798,8 +797,12 @@ EOF
                 echo -e "${YELLOW}使用默认数据库名: mydb${NC}"
             fi
             
-            sudo mysql -e "CREATE DATABASE ${db_name} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
-            echo -e "${GREEN}数据库 ${db_name} 创建成功！${NC}"
+            echo "正在创建数据库 ${db_name}..."
+            if sudo mysql -e "CREATE DATABASE ${db_name} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"; then
+                echo -e "${GREEN}数据库 ${db_name} 创建成功！${NC}"
+            else
+                echo -e "${RED}数据库创建失败！${NC}"
+            fi
             back_to_menu install_php_caddy
             ;;
         17)
