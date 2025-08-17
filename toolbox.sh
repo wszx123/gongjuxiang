@@ -786,7 +786,8 @@ EOF
         15)
             echo "登录 MariaDB..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
-            sudo mysql -u root -p
+            sudo mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS mydb DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; GRANT ALL PRIVILEGES ON mydb.* TO 'root'@'localhost'; FLUSH PRIVILEGES;"
+            echo -e "${GREEN}已自动创建数据库mydb并为root用户授权${NC}"
             echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
