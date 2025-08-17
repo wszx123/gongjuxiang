@@ -785,8 +785,9 @@ EOF
             ;;
         15)
             echo "登录 MariaDB..."
-            echo "请手动执行命令: sudo mysql -u root -p"
-            echo "然后输入设置的密码"
+            echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
+            sudo mysql -u root -p
+            echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
         16)
@@ -1050,7 +1051,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.8 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.17 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
