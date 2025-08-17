@@ -612,7 +612,7 @@ install_php_caddy() {
     echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】 ===${NC}"
     echo "#############################################################"
     echo "1. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】..."
-    echo "2. 安装依赖【从2开始依次进行】..."
+    echo -e "${YELLOW}2. 安装依赖【从2开始依次进行】...${NC}"
     echo "3. 添加 PHP 8.2 官方源（Sury）..."
     echo "4. 更新软件包列表..."
     echo "5. 安装 PHP 8.2 和常用扩展..."
@@ -641,7 +641,7 @@ install_php_caddy() {
             ;;
         2)
             echo "安装依赖【从2开始依次进行】..."
-            sudo apt update && apt install -y curl wget unzip zip
+            sudo apt update && apt install -y wget zip
             sudo apt install -y lsb-release apt-transport-https ca-certificates curl gnupg2 unzip debian-keyring debian-archive-keyring
             back_to_menu install_php_caddy
             ;;
