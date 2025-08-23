@@ -26,10 +26,10 @@ services:
     container_name: mariadb_typecho1
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass123DDD
+      MYSQL_ROOT_PASSWORD: rootpass123
       MYSQL_DATABASE: typecho1
       MYSQL_USER: typecho1
-      MYSQL_PASSWORD: typechopass123DDD
+      MYSQL_PASSWORD: typechopass123
     volumes:
       - ./data:/var/lib/mysql
 
