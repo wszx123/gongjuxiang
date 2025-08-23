@@ -901,34 +901,34 @@ install_typecho() {
                         echo "创建基础目录结构php..."
                         sudo mkdir -p /home/html/typecho/typecho1/php/
                         echo -e "${GREEN}基础目录结构创建完成${NC}"
-                        back_to_menu "install_typecho"
+                        main_menu
                         ;;
                     2)
                         echo "创建基础目录结构public..."
                         sudo mkdir -p /home/html/typecho/typecho1/public/
                         echo -e "${GREEN}基础目录结构创建完成${NC}"
-                        back_to_menu "install_typecho"
+                        main_menu
                         ;;
                     3)
                         echo "设置public目录权限..."
                         sudo chown -R www-data:www-data /home/html/typecho/typecho1/public/
                         sudo chmod -R 755 /home/html/typecho/typecho1/public/
                         echo -e "${GREEN}public目录权限设置完成${NC}"
-                        back_to_menu "install_typecho"
+                        main_menu
                         ;;
                     4)
                         echo "下载docker-compose.yml文件..."
                         cd /home/html/typecho/typecho1/
                         wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/docker-compose.yml
                         echo -e "${GREEN}docker-compose.yml文件下载完成，请手动修改数据库密码${NC}"
-                        back_to_menu "install_typecho"
+                        main_menu
                         ;;
                     5)
                         echo "下载Caddyfile文件..."
                         cd /home/html/typecho/typecho1/
                         wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/Caddyfile
                         echo -e "${GREEN}Caddyfile文件下载完成，请手动修改已解析好的域名${NC}"
-                        back_to_menu "install_typecho"
+                        main_menu
                         ;;
                     6)
                         echo "下载Dockerfile文件..."
