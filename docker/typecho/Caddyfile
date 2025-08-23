@@ -1,0 +1,5 @@
+web1.example.com {
+    root * /srv
+    php_fastcgi php:9000
+    file_server
+}
