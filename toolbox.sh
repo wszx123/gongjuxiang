@@ -357,8 +357,8 @@ system_reinstall() {
             back_to_menu system_reinstall
             ;;
         6)
-            echo "执行一键重装debian11【密码为KKK12356ws01，重装后要修改，虚拟内存1G】..."
-            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 11 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
+            echo "执行一键重装debian11【密码为KKK12356ws01，重装后要修改，虚拟内存2G】..."
+            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 11 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "2048" --bbr
             back_to_menu system_reinstall
             ;;
         7)
@@ -367,8 +367,8 @@ system_reinstall() {
             back_to_menu system_reinstall
             ;;
         8)
-            echo "执行一键重装debian12【密码为KKK12356ws01，重装后要修改，虚拟内存1G】..."
-            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 12 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "1024" --bbr
+            echo "执行一键重装debian12【密码为KKK12356ws01，重装后要修改，虚拟内存2G】..."
+            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 12 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -swap "2048" --bbr
             back_to_menu system_reinstall
             ;;
         9)
@@ -848,6 +848,128 @@ EOF
     esac
 }
 
+# Docker安装最小化Typecho博客函数
+install_typecho() {
+    clear
+    echo "#############################################################"
+    echo -e "${GREEN}=== Docker安装最小化Typecho博客 ===${NC}"
+    echo "#############################################################"
+    echo "1. 相关升级"
+    echo "2. 安装docker compose"
+    echo "3. 创建目录结构和所需文件"
+    echo "   2.1 创建基础目录结构"
+    echo "   2.2 设置public目录权限"
+    echo "   2.3 下载docker-compose.yml文件"
+    echo "   2.4 下载Caddyfile文件"
+    echo "   2.5 下载Dockerfile文件"
+    echo "4. 下载官方Typecho"
+    echo "5. 启动Docker容器"
+    echo "0. 返回主菜单"
+    
+    read -p "请选择要执行的步骤 (0-5): " step_choice
+    
+    case $step_choice in
+        1)
+            echo "执行相关升级..."
+            apt update && apt upgrade -y && apt install -y curl wget unzip zip
+            back_to_menu install_typecho
+            ;;
+        2)
+            echo "安装docker compose..."
+            curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
+            back_to_menu install_typecho
+            ;;
+        3)
+            # 显示子菜单
+            while true; do
+                clear
+                echo "#############################################################"
+                echo -e "${GREEN}=== 创建目录结构和所需文件 ===${NC}"
+                echo "#############################################################"
+                echo "1. 创建基础目录结构php"
+                echo "2. 创建基础目录结构public"
+                echo "3. 设置public目录权限"
+                echo "4. 下载docker-compose.yml文件"
+                echo "5. 下载Caddyfile文件"
+                echo "6. 下载Dockerfile文件"
+                echo "0. 返回上级菜单"
+                
+                read -p "请选择要执行的子步骤 (0-6): " sub_choice
+                
+                case $sub_choice in
+                    1)
+                        echo "创建基础目录结构php..."
+                        sudo mkdir -p /home/html/typecho/typecho1/php/
+                        echo -e "${GREEN}基础目录结构创建完成${NC}"
+                        back_to_menu "install_typecho"
+                        ;;
+                    2)
+                        echo "创建基础目录结构public..."
+                        sudo mkdir -p /home/html/typecho/typecho1/public/
+                        echo -e "${GREEN}基础目录结构创建完成${NC}"
+                        back_to_menu "install_typecho"
+                        ;;
+                    3)
+                        echo "设置public目录权限..."
+                        sudo chown -R www-data:www-data /home/html/typecho/typecho1/public/
+                        sudo chmod -R 755 /home/html/typecho/typecho1/public/
+                        echo -e "${GREEN}public目录权限设置完成${NC}"
+                        back_to_menu "install_typecho"
+                        ;;
+                    4)
+                        echo "下载docker-compose.yml文件..."
+                        cd /home/html/typecho/typecho1/
+                        wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/docker-compose.yml
+                        echo -e "${GREEN}docker-compose.yml文件下载完成，请手动修改数据库密码${NC}"
+                        back_to_menu "install_typecho"
+                        ;;
+                    5)
+                        echo "下载Caddyfile文件..."
+                        cd /home/html/typecho/typecho1/
+                        wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/Caddyfile
+                        echo -e "${GREEN}Caddyfile文件下载完成，请手动修改已解析好的域名${NC}"
+                        back_to_menu "install_typecho"
+                        ;;
+                    6)
+                        echo "下载Dockerfile文件..."
+                        cd /home/html/typecho/typecho1/php/
+                        wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/Dockerfile
+                        echo -e "${GREEN}Dockerfile文件下载完成${NC}"
+                        back_to_menu "install_typecho"
+                        ;;
+                    0) break ;;
+                    *) echo -e "${RED}无效选择${NC}" ; sleep 2 ;;
+                esac
+            done
+            ;;
+        4)
+            echo "下载官方Typecho..."
+            cd /home/html/typecho/typecho1/public/
+            wget https://github.com/typecho/typecho/releases/download/v1.2.1/typecho.zip
+            unzip typecho.zip
+            rm typecho.zip
+            echo -e "${GREEN}Typecho下载并解压完成${NC}"
+            back_to_menu install_typecho
+            ;;
+        5)
+            echo "启动Docker容器..."
+            cd /home/html/typecho/typecho1/
+            docker-compose up -d
+            echo -e "${GREEN}Typecho已启动，打开域名开始安装${NC}"
+            echo "========================================"
+            echo "数据库信息："
+            echo -e "${GREEN}数据库地址：db${NC}"
+            echo -e "${GREEN}数据库名：typecho1${NC}"
+            echo -e "${GREEN}用户名：typecho1${NC}"
+            echo -e "${GREEN}密码：typechopass123【或修改后的密码】${NC}"
+            echo "========================================"
+            back_to_menu install_typecho
+            ;;
+        0) main_menu ;;
+        *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; install_typecho ;;
+    esac
+}
+
 # 经典应用函数
 classic_apps() {
     clear
@@ -1050,7 +1172,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.17 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.23 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
@@ -1063,9 +1185,10 @@ main_menu() {
     echo "9. Caddy2 工具"
     echo "10. VPS安全工具"
     echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】${NC}"
+    echo "12. Docker安装最小化Typecho博客"
     echo "0. 退出"
     
-    read -p "请选择功能 (0-11): " choice
+    read -p "请选择功能 (0-12): " choice
     
     case $choice in
         1) common_commands ;;
@@ -1079,10 +1202,11 @@ main_menu() {
         9) caddy_tools ;;
         10) vps_security_tools ;;
         11) install_php_caddy ;;
+        12) install_typecho ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; main_menu ;;
     esac
 }
 
 # 启动主菜单
-main_menu 
+main_menu
