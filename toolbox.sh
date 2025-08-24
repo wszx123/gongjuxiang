@@ -858,7 +858,7 @@ create_typecho_structure() {
         echo "#############################################################"
         echo "1. 创建基础目录结构php"
         echo "2. 创建基础目录结构public"
-        echo "3. 设置public目录权限"
+        echo "3. 设置web1目录权限【手动设置权限更好】"
         echo "4. 下载docker-compose.yml文件"
         echo "5. 下载Caddyfile文件"
         echo "6. 下载Dockerfile文件"
@@ -880,24 +880,24 @@ create_typecho_structure() {
                 back_to_menu create_typecho_structure
                 ;;
             3)
-                echo "设置public目录权限..."
+                echo "设置web1目录权限【手动设置权限更好】..."
                 sudo chown -R www-data:www-data sudo mkdir -p /home/html/docker/web1/
                 sudo chmod -R 755 sudo mkdir -p /home/html/docker/web1/
-                echo -e "${GREEN}public目录权限设置完成${NC}"
+                echo -e "${YELLOW}web1目录权限设置完成${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             4)
                 echo "下载docker-compose.yml文件..."
                 cd /home/html/docker/web1/
                 wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/docker-compose.yml
-                echo -e "${GREEN}docker-compose.yml文件下载完成，请手动修改数据库密码${NC}"
+                echo -e "${YELLOW}docker-compose.yml文件下载完成，请手动修改数据库密码${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             5)
                 echo "下载Caddyfile文件..."
                 cd /home/html/docker/web1/
                 wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/Caddyfile
-                echo -e "${GREEN}Caddyfile文件下载完成，请手动修改已解析好的域名${NC}"
+                echo -e "${RED}Caddyfile文件下载完成，请手动修改已解析好的域名${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             6)
@@ -923,15 +923,16 @@ install_typecho() {
     echo "2. 安装docker compose"
     echo "3. 创建目录结构和所需文件"
     echo "   2.1 创建基础目录结构"
-    echo "   2.2 设置public目录权限"
+    echo "   2.2 设置web1目录权限【手动设置权限更好】"
     echo "   2.3 下载docker-compose.yml文件"
     echo "   2.4 下载Caddyfile文件"
     echo "   2.5 下载Dockerfile文件"
     echo "4. 下载官方Typecho"
     echo "5. 启动Docker容器"
+    echo "6. 打包备份Typecho博客"
     echo "0. 返回主菜单"
     
-    read -p "请选择要执行的步骤 (0-5): " step_choice
+    read -p "请选择要执行的步骤 (0-6): " step_choice
     
     case $step_choice in
         1)
@@ -957,19 +958,27 @@ install_typecho() {
             back_to_menu install_typecho
             ;;
         5)
-            echo "启动Docker容器..."
+            echo -e "${GREEN}启动Docker容器...${NC}"
             cd /home/html/docker/web1/
             docker-compose up -d
             echo -e "${GREEN}Typecho已启动，打开域名开始安装${NC}"
             echo "========================================"
             echo "数据库信息："
-            echo -e "${GREEN}数据库地址：db${NC}"
+            echo -e "${YELLOW}数据库地址：db${NC}"
             echo -e "${GREEN}数据库名：web1${NC}"
             echo -e "${GREEN}用户名：web1${NC}"
-            echo -e "${GREEN}密码：web1pass123【或修改后的密码】${NC}"
+            echo -e "${YELLOW}密码：web1pass123【或修改后的密码】${NC}"
             echo "========================================"
             back_to_menu install_typecho
             ;;
+        6)
+            echo "打包备份Typecho博客..."
+            curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
+            cd /home/html/docker/
+            tar -czvf DK_web1_backup$(date +%Y%m%d%H%M).tar.gz web1
+            back_to_menu install_typecho
+            ;;
+
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; install_typecho ;;
     esac
@@ -1177,7 +1186,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.23 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.24 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
@@ -1190,7 +1199,7 @@ main_menu() {
     echo "9. Caddy2 工具"
     echo "10. VPS安全工具"
     echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】${NC}"
-    echo "12. Docker安装最小化Typecho博客和php网站"
+    echo -e "${GREEN}12. Docker安装最小化Typecho博客和php网站${NC}"
     echo "0. 退出"
     
     read -p "请选择功能 (0-12): " choice
