@@ -848,7 +848,7 @@ EOF
     esac
 }
 
-# Docker安装最小化Typecho博客函数
+# Docker安装最小化Typecho博客和php网站函数
 # 处理"创建目录结构和所需文件"子菜单的函数
 create_typecho_structure() {
     while true; do
@@ -869,40 +869,40 @@ create_typecho_structure() {
         case $sub_choice in
             1)
                 echo "创建基础目录结构php..."
-                sudo mkdir -p /home/html/typecho/typecho1/php/
+                sudo mkdir -p sudo mkdir -p /home/html/docker/web1/php/
                 echo -e "${GREEN}基础目录结构创建完成${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             2)
                 echo "创建基础目录结构public..."
-                sudo mkdir -p /home/html/typecho/typecho1/public/
+                sudo mkdir -p /home/html/docker/web1/public/
                 echo -e "${GREEN}基础目录结构创建完成${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             3)
                 echo "设置public目录权限..."
-                sudo chown -R www-data:www-data /home/html/typecho/typecho1/public/
-                sudo chmod -R 755 /home/html/typecho/typecho1/public/
+                sudo chown -R www-data:www-data sudo mkdir -p /home/html/docker/web1/public/
+                sudo chmod -R 755 sudo mkdir -p /home/html/docker/web1/public/
                 echo -e "${GREEN}public目录权限设置完成${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             4)
                 echo "下载docker-compose.yml文件..."
-                cd /home/html/typecho/typecho1/
+                cd /home/html/docker/web1/
                 wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/docker-compose.yml
                 echo -e "${GREEN}docker-compose.yml文件下载完成，请手动修改数据库密码${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             5)
                 echo "下载Caddyfile文件..."
-                cd /home/html/typecho/typecho1/
+                cd /home/html/docker/web1/
                 wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/Caddyfile
                 echo -e "${GREEN}Caddyfile文件下载完成，请手动修改已解析好的域名${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             6)
                 echo "下载Dockerfile文件..."
-                cd /home/html/typecho/typecho1/php/
+                cd /home/html/docker/web1/php/
                 wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/Dockerfile
                 echo -e "${GREEN}Dockerfile文件下载完成${NC}"
                 back_to_menu install_typecho
@@ -917,7 +917,7 @@ create_typecho_structure() {
 install_typecho() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Docker安装最小化Typecho博客 ===${NC}"
+    echo -e "${GREEN}=== Docker安装最小化Typecho博客和php网站 ===${NC}"
     echo "#############################################################"
     echo "1. 相关升级"
     echo "2. 安装docker compose"
@@ -949,7 +949,7 @@ install_typecho() {
             ;;
         4)
             echo "下载官方Typecho..."
-            cd /home/html/typecho/typecho1/public/
+            cd /home/html/docker/web1/public/
             wget https://github.com/typecho/typecho/releases/download/v1.2.1/typecho.zip
             unzip typecho.zip
             rm typecho.zip
@@ -958,15 +958,15 @@ install_typecho() {
             ;;
         5)
             echo "启动Docker容器..."
-            cd /home/html/typecho/typecho1/
+            cd /home/html/docker/web1/
             docker-compose up -d
             echo -e "${GREEN}Typecho已启动，打开域名开始安装${NC}"
             echo "========================================"
             echo "数据库信息："
             echo -e "${GREEN}数据库地址：db${NC}"
-            echo -e "${GREEN}数据库名：typecho1${NC}"
-            echo -e "${GREEN}用户名：typecho1${NC}"
-            echo -e "${GREEN}密码：typechopass123【或修改后的密码】${NC}"
+            echo -e "${GREEN}数据库名：web1${NC}"
+            echo -e "${GREEN}用户名：web1${NC}"
+            echo -e "${GREEN}密码：web1pass123【或修改后的密码】${NC}"
             echo "========================================"
             back_to_menu install_typecho
             ;;
@@ -1190,7 +1190,7 @@ main_menu() {
     echo "9. Caddy2 工具"
     echo "10. VPS安全工具"
     echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】${NC}"
-    echo "12. Docker安装最小化Typecho博客"
+    echo "12. Docker安装最小化Typecho博客和php网站"
     echo "0. 退出"
     
     read -p "请选择功能 (0-12): " choice
