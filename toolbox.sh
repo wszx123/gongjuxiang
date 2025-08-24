@@ -881,8 +881,8 @@ create_typecho_structure() {
                 ;;
             3)
                 echo "设置public目录权限..."
-                sudo chown -R www-data:www-data sudo mkdir -p /home/html/docker/web1/public/
-                sudo chmod -R 755 sudo mkdir -p /home/html/docker/web1/public/
+                sudo chown -R www-data:www-data sudo mkdir -p /home/html/docker/web1/
+                sudo chmod -R 755 sudo mkdir -p /home/html/docker/web1/
                 echo -e "${GREEN}public目录权限设置完成${NC}"
                 back_to_menu create_typecho_structure
                 ;;
