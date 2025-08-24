@@ -1,13 +1,13 @@
 services:
   caddy:
     image: caddy:2-alpine
-    container_name: caddy_typecho1
+    container_name: caddy_web1
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./public:/srv
+      - ./public:/srv/public
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -15,21 +15,21 @@ services:
 
   php:
     build: ./php
-    container_name: php_typecho1
+    container_name: php_web1
     volumes:
-      - ./public:/srv
+      - ./public:/srv/public
     depends_on:
       - db
 
   db:
     image: mariadb:10.7
-    container_name: mariadb_typecho1
+    container_name: mariadb_web1
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpass123
-      MYSQL_DATABASE: typecho1
-      MYSQL_USER: typecho1
-      MYSQL_PASSWORD: typechopass123
+      MYSQL_DATABASE: web1
+      MYSQL_USER: web1
+      MYSQL_PASSWORD: web1pass123
     volumes:
       - ./data:/var/lib/mysql
 
