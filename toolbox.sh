@@ -973,7 +973,6 @@ install_typecho() {
             ;;
         6)
             echo "打包备份Typecho博客..."
-            curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
             cd /home/html/docker/
             tar -czvf DK_web1_backup$(date +%Y%m%d%H%M).tar.gz web1
             back_to_menu install_typecho
