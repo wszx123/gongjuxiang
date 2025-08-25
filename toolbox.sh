@@ -857,7 +857,7 @@ create_typecho_structure() {
         echo -e "${GREEN}=== 创建目录结构和所需文件 ===${NC}"
         echo "#############################################################"
         echo "1. 创建基础目录结构php"
-        echo "2. 创建基础目录结构public"
+        echo "2. 创建基础目录结构public并设置权限"
         echo "3. 设置web1目录权限【手动设置权限更好】"
         echo "4. 下载docker-compose.yml文件"
         echo "5. 下载Caddyfile文件"
@@ -874,15 +874,15 @@ create_typecho_structure() {
                 back_to_menu create_typecho_structure
                 ;;
             2)
-                echo "创建基础目录结构public..."
+                echo "创建基础目录结构public并设置权限..."
                 sudo mkdir -p /home/html/docker/web1/public/
+                sudo chown -R www-data:www-data /home/html/docker/web1/public && sudo chmod -R 755 /home/html/docker/web1/public
                 echo -e "${GREEN}基础目录结构创建完成${NC}"
                 back_to_menu create_typecho_structure
                 ;;
             3)
                 echo "设置web1目录权限【手动设置权限更好】..."
-                sudo chown -R www-data:www-data sudo mkdir -p /home/html/docker/web1/
-                sudo chmod -R 755 sudo mkdir -p /home/html/docker/web1/
+                sudo chown -R www-data:www-data /home/html/docker/web1 && sudo chmod -R 755 /home/html/docker/web1
                 echo -e "${YELLOW}web1目录权限设置完成${NC}"
                 back_to_menu create_typecho_structure
                 ;;
@@ -927,12 +927,13 @@ install_typecho() {
     echo "   2.3 下载docker-compose.yml文件"
     echo "   2.4 下载Caddyfile文件"
     echo "   2.5 下载Dockerfile文件"
-    echo "4. 下载官方Typecho"
-    echo "5. 启动Docker容器"
-    echo "6. 打包备份Typecho博客"
+    echo -e "${YELLOW}4. 下载官方Typecho并解压【4或5选择一种】${NC}"
+    echo -e "${YELLOW}5. 下载php测试文件【4或5选择一种】${NC}"
+    echo "6. 启动Docker容器"
+    echo "7. 打包备份Typecho博客"
     echo "0. 返回主菜单"
     
-    read -p "请选择要执行的步骤 (0-6): " step_choice
+    read -p "请选择要执行的步骤 (0-7): " step_choice
     
     case $step_choice in
         1)
@@ -949,7 +950,7 @@ install_typecho() {
             create_typecho_structure
             ;;
         4)
-            echo "下载官方Typecho..."
+            echo "下载官方Typecho并解压..."
             cd /home/html/docker/web1/public/
             wget https://github.com/typecho/typecho/releases/download/v1.2.1/typecho.zip
             unzip typecho.zip
@@ -958,6 +959,13 @@ install_typecho() {
             back_to_menu install_typecho
             ;;
         5)
+            echo "下载php测试文件..."
+            cd /home/html/docker/web1/public/
+            wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/docker/typecho/index.php
+            echo -e "${GREEN}Typecho下载并解压完成${NC}"
+            back_to_menu install_typecho
+            ;;
+        6)
             echo -e "${GREEN}启动Docker容器...${NC}"
             cd /home/html/docker/web1/
             docker-compose up -d
@@ -971,7 +979,7 @@ install_typecho() {
             echo "========================================"
             back_to_menu install_typecho
             ;;
-        6)
+        7)
             echo "打包备份Typecho博客..."
             cd /home/html/docker/
             tar -czvf DK_web1_backup$(date +%Y%m%d%H%M).tar.gz web1
@@ -1185,7 +1193,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.24 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.25 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
