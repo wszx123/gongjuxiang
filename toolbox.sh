@@ -620,19 +620,20 @@ install_php_caddy() {
     echo "7. 添加 Caddy 官方源..."
     echo "8. 安装 Caddy Web Server..."
     echo "9. 创建网站目录 /home/html/web/[自定义]..."
-    echo "10. 配置 Caddyfile【提前解析好域名，第一次配置后进入Caddyfile把多余的备注删除】..."
-    echo "11. 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】..."
-    echo "12. 查看安装结果"
-    echo -e "${YELLOW}13. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】...${NC}"
-    echo "14. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
-    echo "15. 登录 MariaDB并创建数据库..."
-    echo "16. 登录 MariaDB并创建数据库2..."
-    echo "17. 登录 MariaDB并创建数据库3..."
-    echo "18. 退出数据库..."
-    echo "19. 显示示例配置（适用于 WordPress/phpMyAdmin 等）..."
+    echo "10. 创建示例网站文件 /home/html/web/[自定义]..."
+    echo "11. 配置 Caddyfile【提前解析好域名，第一次配置后进入Caddyfile把多余的备注删除】..."
+    echo -e "${RED}12. 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】...${NC}"
+    echo "13. 查看安装结果"
+    echo -e "${YELLOW}14. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】...${NC}"
+    echo "15. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
+    echo "16. 登录 MariaDB并创建数据库..."
+    echo "17. 登录 MariaDB并创建数据库2..."
+    echo "18. 登录 MariaDB并创建数据库3..."
+    echo "19. 退出数据库..."
+    echo "20. 显示示例配置（适用于 WordPress/phpMyAdmin 等）..."
     echo "0. 返回主菜单"
     
-    read -p "请选择要执行的步骤 (0-19): " step_choice
+    read -p "请选择要执行的步骤 (0-20): " step_choice
     
     case $step_choice in
         1)
@@ -698,7 +699,32 @@ install_php_caddy() {
             echo -e "${GREEN}网站目录创建成功: /home/html/web/$custom_dir${NC}"
             back_to_menu install_php_caddy
             ;;
+
         10)
+            echo "创建示例网站文件 /home/html/web/[自定义]..."
+            
+            # 获取用户输入的目录名
+            read -p "请输入最后一级目录名称(例如web1): " dir_name
+            while [[ -z "$dir_name" ]]; do
+                echo -e "${RED}目录名称不能为空！${NC}"
+                read -p "请重新输入最后一级目录名称: " dir_name
+            done
+            
+            # 检查目录是否存在
+            if [ ! -d "/home/html/web/$dir_name" ]; then
+                echo -e "${RED}目录 /home/html/web/$dir_name 不存在，请先创建目录！${NC}"
+            else
+                # 在指定目录中创建示例网站文件
+                echo "<?php phpinfo(); ?>" | sudo tee /home/html/web/$dir_name/index.php > /dev/null
+                sudo chown www-data:www-data /home/html/web/$dir_name/index.php
+                sudo chmod 644 /home/html/web/$dir_name/index.php
+                echo -e "${GREEN}示例网站文件已创建: /home/html/web/$dir_name/index.php${NC}"
+            fi
+            
+            back_to_menu install_php_caddy
+            ;;
+
+        11)
             echo "配置 Caddyfile【提前解析好域名，第一次配置后进入Caddyfile把多余的备注删除】..."
             # 先获取用户想要设置的目录名
             read -p "请输入最后一级目录名称(例如web1): " dir_name
@@ -739,7 +765,7 @@ EOF
             echo -e "${GREEN}绑定域名: $domain_name${NC}"
             back_to_menu install_php_caddy
             ;;
-        11)
+        12)
             echo "启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】..."
             sudo systemctl restart php8.2-fpm
             sudo systemctl enable php8.2-fpm
@@ -747,7 +773,7 @@ EOF
             sudo systemctl enable caddy
             back_to_menu install_php_caddy
             ;;
-        12)
+        13)
             echo "部署完成！"
             read -p "请输入之前设置的最后一级目录名称(例如web1): " final_dir
             while [[ -z "$final_dir" ]]; do
@@ -759,7 +785,7 @@ EOF
             echo "访问地址：http://example1.com （请解析域名）"
             back_to_menu install_php_caddy
             ;;
-        13)
+        14)
             echo "安装MariaDB（兼容 MySQL）..."
             sudo apt update
             sudo apt install -y mariadb-server
@@ -768,7 +794,7 @@ EOF
             echo -e "${GREEN}MariaDB安装完成并已启动！${NC}"
             back_to_menu install_php_caddy
             ;;
-        14)
+        15)
             echo "设置 root 密码..."
             # 提示用户输入密码
             read -sp "请输入MariaDB root用户密码（默认为rootpass123）: " db_password
@@ -783,7 +809,7 @@ EOF
             echo -e "${GREEN}root用户密码设置成功！${NC}"
             back_to_menu install_php_caddy
             ;;
-        15)
+        16)
             echo "登录 MariaDB并创建数据库..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
             sudo mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS mydb DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; GRANT ALL PRIVILEGES ON mydb.* TO 'root'@'localhost'; FLUSH PRIVILEGES;"
@@ -798,7 +824,7 @@ EOF
             echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
-        16)
+        17)
             echo "登录 MariaDB并创建数据库2..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
             sudo mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS mydb2 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; GRANT ALL PRIVILEGES ON mydb2.* TO 'root'@'localhost'; FLUSH PRIVILEGES;"
@@ -813,7 +839,7 @@ EOF
             echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
-        17)
+        18)
             echo "登录 MariaDB并创建数据库3..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
             sudo mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS mydb3 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; GRANT ALL PRIVILEGES ON mydb3.* TO 'root'@'localhost'; FLUSH PRIVILEGES;"
@@ -828,12 +854,12 @@ EOF
             echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
-        18)
+        19)
             echo "退出数据库..."
             echo "请在数据库命令行中执行: quit;"
             back_to_menu install_php_caddy
             ;;
-        19)
+        20)
             echo "显示示例配置（适用于 WordPress/phpMyAdmin 等）:"
             echo "========================================"
             echo "数据库名: mydb"
@@ -1193,7 +1219,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.25 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.28 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
