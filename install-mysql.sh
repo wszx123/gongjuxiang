@@ -3,9 +3,9 @@ set -e
 
 # === 配置变量（根据需要修改） ===
 MYSQL_VERSION="8.0"
-MYSQL_DB="upload_db"
-MYSQL_USER="upload_user"
-MYSQL_PASS="password123DDD"
+MYSQL_DB="wszx123_db"
+MYSQL_USER="wszx123_user"
+MYSQL_PASS="password123"
 
 # === 检查 root 权限 ===
 if [ "$EUID" -ne 0 ]; then
