@@ -624,16 +624,17 @@ install_php_caddy() {
     echo "11. 配置 Caddyfile【提前解析好域名，第一次配置后进入Caddyfile把多余的备注删除】..."
     echo -e "${RED}12. 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】...${NC}"
     echo "13. 查看安装结果"
-    echo -e "${YELLOW}14. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】...${NC}"
-    echo "15. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
-    echo "16. 登录 MariaDB并创建数据库..."
-    echo "17. 登录 MariaDB并创建数据库2..."
-    echo "18. 登录 MariaDB并创建数据库3..."
-    echo "19. 退出数据库..."
-    echo "20. 显示示例配置（适用于 WordPress/phpMyAdmin 等）..."
+    echo -e "${YELLOW}14. 一键安装 MySQL 8.0和扩展（推荐）【不用数据库可不安装】...${NC}"
+    echo -e "${YELLOW}15. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】...${NC}"
+    echo "16. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
+    echo "17. 登录 MariaDB并创建数据库..."
+    echo "18. 登录 MariaDB并创建数据库2..."
+    echo "19. 登录 MariaDB并创建数据库3..."
+    echo "20. 退出数据库..."
+    echo "21. 显示示例配置（适用于 WordPress/phpMyAdmin 等）..."
     echo "0. 返回主菜单"
     
-    read -p "请选择要执行的步骤 (0-20): " step_choice
+    read -p "请选择要执行的步骤 (0-21): " step_choice
     
     case $step_choice in
         1)
