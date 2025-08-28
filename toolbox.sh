@@ -609,7 +609,7 @@ caddy_tools() {
 install_php_caddy() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】 ===${NC}"
+    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MySQL 8.0或MariaDB数据库】 ===${NC}"
     echo "#############################################################"
     echo "1. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】..."
     echo -e "${YELLOW}2. 安装依赖【从2开始依次进行】...${NC}"
@@ -624,16 +624,17 @@ install_php_caddy() {
     echo "11. 配置 Caddyfile【提前解析好域名，第一次配置后进入Caddyfile把多余的备注删除】..."
     echo -e "${RED}12. 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】...${NC}"
     echo "13. 查看安装结果"
-    echo -e "${YELLOW}14. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】...${NC}"
-    echo "15. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
-    echo "16. 登录 MariaDB并创建数据库..."
-    echo "17. 登录 MariaDB并创建数据库2..."
-    echo "18. 登录 MariaDB并创建数据库3..."
-    echo "19. 退出数据库..."
-    echo "20. 显示示例配置（适用于 WordPress/phpMyAdmin 等）..."
+    echo -e "${YELLOW}14. 一键安装 MySQL 8.0和扩展（推荐）【不用数据库可不安装】...${NC}"
+    echo -e "${YELLOW}15. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】...${NC}"
+    echo "16. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
+    echo "17. 登录 MariaDB并创建数据库..."
+    echo "18. 登录 MariaDB并创建数据库2..."
+    echo "19. 登录 MariaDB并创建数据库3..."
+    echo "20. 退出数据库..."
+    echo "21. 显示示例配置（适用于 WordPress/phpMyAdmin 等）..."
     echo "0. 返回主菜单"
     
-    read -p "请选择要执行的步骤 (0-20): " step_choice
+    read -p "请选择要执行的步骤 (0-21): " step_choice
     
     case $step_choice in
         1)
@@ -786,6 +787,17 @@ EOF
             back_to_menu install_php_caddy
             ;;
         14)
+            echo "一键安装 MySQL 8.0和扩展（推荐）..."
+            echo "下载脚本..."
+            wget -O install-mysql.sh https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/install-mysql.sh
+            echo "赋予执行权限..."
+            chmod +x install-mysql.sh
+            echo "执行安装..."
+            sudo ./install-mysql.sh
+            echo -e "${GREEN}MySQL 8.0安装完成！${NC}"
+            back_to_menu install_php_caddy
+            ;;
+        15)
             echo "安装MariaDB（兼容 MySQL）..."
             sudo apt update
             sudo apt install -y mariadb-server
@@ -794,7 +806,7 @@ EOF
             echo -e "${GREEN}MariaDB安装完成并已启动！${NC}"
             back_to_menu install_php_caddy
             ;;
-        15)
+        16)
             echo "设置 root 密码..."
             # 提示用户输入密码
             read -sp "请输入MariaDB root用户密码（默认为rootpass123）: " db_password
@@ -809,7 +821,7 @@ EOF
             echo -e "${GREEN}root用户密码设置成功！${NC}"
             back_to_menu install_php_caddy
             ;;
-        16)
+        17)
             echo "登录 MariaDB并创建数据库..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
             sudo mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS mydb DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; GRANT ALL PRIVILEGES ON mydb.* TO 'root'@'localhost'; FLUSH PRIVILEGES;"
@@ -824,7 +836,7 @@ EOF
             echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
-        17)
+        18)
             echo "登录 MariaDB并创建数据库2..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
             sudo mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS mydb2 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; GRANT ALL PRIVILEGES ON mydb2.* TO 'root'@'localhost'; FLUSH PRIVILEGES;"
@@ -839,7 +851,7 @@ EOF
             echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
-        18)
+        19)
             echo "登录 MariaDB并创建数据库3..."
             echo "现在将直接连接到 MariaDB，请输入密码或按 Ctrl+D 退出。"
             sudo mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS mydb3 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; GRANT ALL PRIVILEGES ON mydb3.* TO 'root'@'localhost'; FLUSH PRIVILEGES;"
@@ -854,12 +866,12 @@ EOF
             echo "已退出 MariaDB。"
             back_to_menu install_php_caddy
             ;;
-        19)
+        20)
             echo "退出数据库..."
             echo "请在数据库命令行中执行: quit;"
             back_to_menu install_php_caddy
             ;;
-        20)
+        21)
             echo "显示示例配置（适用于 WordPress/phpMyAdmin 等）:"
             echo "========================================"
             echo "数据库名: mydb"
@@ -1219,7 +1231,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.28 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2025.8.29 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
@@ -1231,7 +1243,7 @@ main_menu() {
     echo "8. 哪吒面板"
     echo "9. Caddy2 工具"
     echo "10. VPS安全工具"
-    echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】${NC}"
+    echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MySQL 8.0或MariaDB数据库】${NC}"
     echo -e "${GREEN}12. Docker安装最小化Typecho博客和php网站${NC}"
     echo "0. 退出"
     
