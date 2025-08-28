@@ -30,9 +30,10 @@ systemctl start mysql
 
 echo ">>> 设置 root 账号密码和权限..."
 mysql -u root <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_PASS}';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_PASS}';
 FLUSH PRIVILEGES;
 EOF
+
 
 echo ">>> 创建数据库 ${MYSQL_DB} 和用户 ${MYSQL_USER}..."
 mysql -u root -p${MYSQL_PASS} <<EOF
