@@ -609,7 +609,7 @@ caddy_tools() {
 install_php_caddy() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】 ===${NC}"
+    echo -e "${GREEN}=== 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MySQL 8.0或MariaDB数据库】 ===${NC}"
     echo "#############################################################"
     echo "1. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】..."
     echo -e "${YELLOW}2. 安装依赖【从2开始依次进行】...${NC}"
@@ -1243,7 +1243,7 @@ main_menu() {
     echo "8. 哪吒面板"
     echo "9. Caddy2 工具"
     echo "10. VPS安全工具"
-    echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MariaDB数据库】${NC}"
+    echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MySQL 8.0或MariaDB数据库】${NC}"
     echo -e "${GREEN}12. Docker安装最小化Typecho博客和php网站${NC}"
     echo "0. 退出"
     
