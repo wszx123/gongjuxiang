@@ -48,8 +48,8 @@ systemctl restart php8.2-fpm || true
 echo ">>> MySQL 安装完成!"
 echo "#############################################################"
 echo "数据库名: ${MYSQL_DB}"
-echo "用户名:   ${MYSQL_USER}"
-echo "密码:     ${MYSQL_PASS}"
+echo "用 户 名: ${MYSQL_USER}"
+echo "密    码: ${MYSQL_PASS}"
 
 echo "SQLite3 和 PHP SQLite3 扩展已安装!"
 echo "#############################################################"
