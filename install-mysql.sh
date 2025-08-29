@@ -5,23 +5,7 @@ set -e
 MYSQL_VERSION="8.0"
 MYSQL_DB="wszx123_db"
 MYSQL_USER="wszx123_user"
-MYSQL_PASS="password123"
-
-# === 检查 root 权限 ===
-if [ "$EUID" -ne 0 ]; then
-  echo "请使用 root 用户运行此脚本"
-  exit 1
-fi
-
-# 询问用户是否要修改默认密码
-echo "默认 MySQL 密码是: ${MYSQL_PASS}"
-read -p "是否要修改默认密码? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    read -s -p "请输入新的 MySQL 密码: " NEW_MYSQL_PASS
-    echo
-    MYSQL_PASS=$NEW_MYSQL_PASS
-fi
+MYSQL_PASS="password@123@DDD"
 
 echo ">>> 添加 MySQL 官方 APT 源..."
 wget -q https://dev.mysql.com/get/mysql-apt-config_0.8.32-1_all.deb
