@@ -1,11 +1,18 @@
 #!/bin/bash
 set -e
 
+# 修复主机名解析警告（可选）
+export HOSTNAME=$(hostname)
+
 # === 配置变量（根据需要修改，MYSQL_PASS密码务必要修改） ===
 MYSQL_VERSION="8.0"
 MYSQL_DB="wszx123_db"
 MYSQL_USER="wszx123_user"
 MYSQL_PASS="password@123@DDD"
+
+echo ">>> 添加 MySQL 官方 GPG 密钥..."
+# 下载并导入 MySQL GPG 密钥
+wget -qO - https://repo.mysql.com/RPM-GPG-KEY-mysql-2022 | gpg --dearmor -o /etc/apt/trusted.gpg.d/mysql.gpg
 
 echo ">>> 添加 MySQL 官方 APT 源..."
 wget -q https://dev.mysql.com/get/mysql-apt-config_0.8.32-1_all.deb
