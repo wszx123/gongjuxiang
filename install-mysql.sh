@@ -12,10 +12,8 @@ wget -q https://dev.mysql.com/get/mysql-apt-config_0.8.32-1_all.deb
 DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_0.8.32-1_all.deb
 rm -f mysql-apt-config_0.8.32-1_all.deb
 
-# 修复：添加MySQL APT仓库的GPG密钥
 echo ">>> 导入 MySQL 官方 GPG 密钥..."
-wget -O- https://repo.mysql.com/RPM-GPG-KEY-mysql | gpg --dearmor > /usr/share/keyrings/mysql.gpg
-echo "deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/debian/ bookworm mysql-${MYSQL_VERSION}" > /etc/apt/sources.list.d/mysql.list
+wget -qO - https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor > /etc/apt/trusted.gpg.d/mysql.gpg
 
 echo ">>> 更新包列表..."
 apt update
