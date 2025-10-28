@@ -10,14 +10,31 @@ MYSQL_DB="wszx123_db"
 MYSQL_USER="wszx123_user"
 MYSQL_PASS="password@123@DDD"
 
-echo ">>> 添加 MySQL 官方 GPG 密钥..."
-# 下载并导入 MySQL GPG 密钥
-wget -qO - https://repo.mysql.com/RPM-GPG-KEY-mysql-2022 | gpg --dearmor -o /etc/apt/trusted.gpg.d/mysql.gpg
+echo ">>> 清理旧的 MySQL 配置..."
+# 移除旧的mysql-apt-config包（如果存在）
+dpkg -r mysql-apt-config 2>/dev/null || true
+dpkg --purge mysql-apt-config 2>/dev/null || true
 
-echo ">>> 添加 MySQL 官方 APT 源..."
-wget -q https://dev.mysql.com/get/mysql-apt-config_0.8.32-1_all.deb
-DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_0.8.32-1_all.deb
-rm -f mysql-apt-config_0.8.32-1_all.deb
+# 清理旧的MySQL仓库配置
+rm -f /etc/apt/sources.list.d/mysql.list
+rm -f /etc/apt/sources.list.d/mysql-*.list
+rm -f /etc/apt/trusted.gpg.d/mysql-archive-keyring.gpg
+rm -f /etc/apt/trusted.gpg.d/mysql.gpg
+rm -f /etc/apt/sources.list.d/mysql-apt-config.list
+apt clean
+
+echo ">>> 添加 MySQL 官方 GPG 密钥..."
+# 下载并导入最新的MySQL GPG密钥（使用2023年密钥）
+wget -qO /tmp/mysql_pubkey.asc https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+gpg --dearmor /tmp/mysql_pubkey.asc > /etc/apt/trusted.gpg.d/mysql.gpg 2>/dev/null || \
+wget -qO- https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor -o /etc/apt/trusted.gpg.d/mysql.gpg
+rm -f /tmp/mysql_pubkey.asc
+
+echo ">>> 手动配置 MySQL 官方仓库..."
+# 手动创建MySQL仓库配置文件
+cat > /etc/apt/sources.list.d/mysql.list <<EOF
+deb [signed-by=/etc/apt/trusted.gpg.d/mysql.gpg] http://repo.mysql.com/apt/debian/ bookworm mysql-${MYSQL_VERSION}
+EOF
 
 echo ">>> 更新包列表..."
 apt update
