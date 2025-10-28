@@ -12,7 +12,10 @@ wget -q https://dev.mysql.com/get/mysql-apt-config_0.8.32-1_all.deb
 DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_0.8.32-1_all.deb
 rm -f mysql-apt-config_0.8.32-1_all.deb
 
-echo ">>> 导入 MySQL 官方 GPG 密钥..."
+echo ">>> 删除过期的 MySQL GPG 密钥..."
+rm -f /etc/apt/trusted.gpg.d/mysql.gpg
+
+echo ">>> 导入最新的 MySQL 官方 GPG 密钥..."
 wget -qO - https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor > /etc/apt/trusted.gpg.d/mysql.gpg
 
 echo ">>> 更新包列表..."
