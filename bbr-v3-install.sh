@@ -18,7 +18,7 @@ done
 # 检测系统架构
 ARCH=$(uname -m)
 if [[ "$ARCH" != "aarch64" && "$ARCH" != "x86_64" ]]; then
-    echo -e "\033[31m 这个脚本只支持 ARM 和 x86_64 架构哦~ 您的系统架构是：$ARCH\033[0m"
+    echo -e "\033[31m 这个脚本只支持 ARM 和 x86_64 架构~ 您的系统架构是：$ARCH\033[0m"
     exit 1
 fi
 
@@ -212,13 +212,12 @@ print_separator() {
 
 clear
 print_separator
-echo -e "\033[1;35m 欢迎来到 BBR 管理脚本世界哒！ \033[0m"
+echo -e "\033[1;35m 欢迎使用 BBR 管理脚本！ \033[0m"
 print_separator
 echo -e "\033[36m当前 TCP 拥塞控制算法：\033[0m\033[1;32m$CURRENT_ALGO\033[0m"
 echo -e "\033[36m当前队列管理算法：    \033[0m\033[1;32m$CURRENT_QDISC\033[0m"
-print_separator
 
-echo -e "\033[1;33m  你可以选择以下操作哦：\033[0m"
+echo -e "\033[1;33m  你可以选择以下操作：\033[0m"
 echo -e "\033[33m 1. ⚡ 安装或更新 BBR v3 (最新版)\033[0m"
 echo -e "\033[33m 2. ⚡ 指定版本安装\033[0m"
 echo -e "\033[33m 3. ⚡ 检查 BBR v3 状态\033[0m"
