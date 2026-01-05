@@ -22,10 +22,10 @@ if [[ -f /etc/os-release ]]; then
     source /usr/lib/os-release
     release=$ID
 else
-    echo "Failed to check the system OS, please contact the author!" >&2
+    echo "无法检测系统OS，请联系作者!" >&2
     exit 1
 fi
-echo "The OS release is: $release"
+echo "系统版本是: $release"
 
 arch() {
     case "$(uname -m)" in
@@ -36,7 +36,7 @@ arch() {
         armv6* | armv6) echo 'armv6' ;;
         armv5* | armv5) echo 'armv5' ;;
         s390x) echo 's390x' ;;
-        *) echo -e "${green}Unsupported CPU architecture! ${plain}" && rm -f install.sh && exit 1 ;;
+        *) echo -e "${green}不支持的CPU架构! ${plain}" && rm -f install.sh && exit 1 ;;
     esac
 }
 
@@ -464,11 +464,11 @@ prompt_and_setup_ssl() {
 
     local ssl_choice=""
 
-    echo -e "${yellow}Choose SSL certificate setup method:${plain}"
-    echo -e "${green}1.${plain} Let's Encrypt for Domain (90-day validity, auto-renews)"
-    echo -e "${green}2.${plain} Let's Encrypt for IP Address (6-day validity, auto-renews)"
-    echo -e "${blue}Note:${plain} Both options require port 80 open. IP certs use shortlived profile."
-    read -rp "Choose an option (default 2 for IP): " ssl_choice
+    echo -e "${yellow}选择SSL证书设置方法:${plain}"
+    echo -e "${green}1.${plain} Let's Encrypt for Domain（90天有效期，自动续订）"
+    echo -e "${green}2.${plain} Let's Encrypt for IP地址（6天有效期，自动续订）"
+    echo -e "${blue}Note:${plain} 这两个选项都需要打开端口80。IP证书使用短期配置文件."
+    read -rp "选择一个选项（IP默认为2）: " ssl_choice
     ssl_choice="${ssl_choice// /}"  # Trim whitespace
     
     # Default to 2 (IP cert) if not 1
@@ -497,7 +497,7 @@ prompt_and_setup_ssl() {
         
         # Ask for optional IPv6
         local ipv6_addr=""
-        read -rp "Do you have an IPv6 address to include? (leave empty to skip): " ipv6_addr
+        read -rp "您是否有需要包含的IPv6地址？（留空则跳过）: " ipv6_addr
         ipv6_addr="${ipv6_addr// /}"  # Trim whitespace
         
         # Stop panel if running (port 80 needed)
@@ -578,11 +578,11 @@ config_after_install() {
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${green}     面板安装完成！         ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "${green}用户名:    ${config_username}${plain}"
-            echo -e "${green}密码:    ${config_password}${plain}"
-            echo -e "${green}端口:        ${config_port}${plain}"
+            echo -e "${green}用户名: ${config_username}${plain}"
+            echo -e "${green}密  码: ${config_password}${plain}"
+            echo -e "${green}端  口: ${config_port}${plain}"
             echo -e "${green}WebBasePath: ${config_webBasePath}${plain}"
-            echo -e "${green}访问地址:  https://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
+            echo -e "${green}访问地址: https://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${yellow}⚠ 重要: 请安全保存这些凭据!${plain}"
             echo -e "${yellow}⚠ SSL Certificate: Enabled and configured${plain}"
@@ -614,13 +614,13 @@ config_after_install() {
             
             echo -e "${yellow}Default credentials detected. Security update required...${plain}"
             ${xui_folder}/x-ui setting -username "${config_username}" -password "${config_password}"
-            echo -e "Generated new random login credentials:"
+            echo -e "生成了新的随机登录凭据:"
             echo -e "###############################################"
             echo -e "${green}用户名: ${config_username}${plain}"
-            echo -e "${green}密码: ${config_password}${plain}"
+            echo -e "${green}密  码: ${config_password}${plain}"
             echo -e "###############################################"
         else
-            echo -e "${green}Username, Password, and WebBasePath are properly set.${plain}"
+            echo -e "${green}用户名、密码和WebBasePath已正确设置.${plain}"
         fi
 
         # Existing install: if no cert configured, prompt user for SSL setup
@@ -810,24 +810,24 @@ install_x-ui() {
     
     echo -e "${green}x-ui ${tag_version}${plain} installation finished, it is running now..."
     echo -e ""
-    echo -e "┌───────────────────────────────────────────────────────┐
-│  ${blue}x-ui 控制菜单使用方法 (子命令):${plain}              │
-│                                                       │
-│  ${blue}x-ui${plain}              - 管理脚本          │
-│  ${blue}x-ui start${plain}        - 启动                            │
-│  ${blue}x-ui stop${plain}         - 停止                             │
-│  ${blue}x-ui restart${plain}      - 重启                          │
-│  ${blue}x-ui status${plain}       - 查看状态                   │
-│  ${blue}x-ui settings${plain}     - 当前设置                 │
-│  ${blue}x-ui enable${plain}       - 开机自启   │
-│  ${blue}x-ui disable${plain}      - 关闭开机自启  │
-│  ${blue}x-ui log${plain}          - 查看日志                       │
-│  ${blue}x-ui banlog${plain}       - 查看Fail2ban封禁日志          │
-│  ${blue}x-ui update${plain}       - 更新                           │
-│  ${blue}x-ui legacy${plain}       - 旧版本                   │
-│  ${blue}x-ui install${plain}      - 安装                          │
-│  ${blue}x-ui uninstall${plain}    - 卸载                        │
-└───────────────────────────────────────────────────────┘"
+    echo -e "═══════════════════════════════════════════
+  ${blue}x-ui 控制菜单使用方法 (子命令):${plain}
+
+  ${blue}x-ui${plain}              - 管理脚本
+  ${blue}x-ui start${plain}        - 启动
+  ${blue}x-ui stop${plain}         - 停止
+  ${blue}x-ui restart${plain}      - 重启
+  ${blue}x-ui status${plain}       - 查看状态
+  ${blue}x-ui settings${plain}     - 当前设置
+  ${blue}x-ui enable${plain}       - 开机自启
+  ${blue}x-ui disable${plain}      - 关闭开机自启
+  ${blue}x-ui log${plain}          - 查看日志
+  ${blue}x-ui banlog${plain}       - 查看Fail2ban封禁日志
+  ${blue}x-ui update${plain}       - 更新
+  ${blue}x-ui legacy${plain}       - 旧版本
+  ${blue}x-ui install${plain}      - 安装
+  ${blue}x-ui uninstall${plain}    - 卸载
+═══════════════════════════════════════════"
 }
 
 echo -e "${green}Running...${plain}"
