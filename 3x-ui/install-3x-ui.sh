@@ -582,7 +582,7 @@ config_after_install() {
             echo -e "${green}密  码: ${config_password}${plain}"
             echo -e "${green}端  口: ${config_port}${plain}"
             echo -e "${green}WebBasePath: ${config_webBasePath}${plain}"
-            echo -e "${green}访问地址: https://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
+            echo -e "${green}访问地址: http://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${yellow}⚠ 重要: 请安全保存这些凭据!${plain}"
             echo -e "${yellow}⚠ SSL Certificate: Enabled and configured${plain}"
