@@ -1,4 +1,3 @@
-cat > /root/rv.sh <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 export LANG=en_US.UTF-8
@@ -13,25 +12,32 @@ XRAY_CONF="/usr/local/etc/xray/config.json"
 SERVICE="xray"
 
 REYM_DEFAULT="www.tesla.com"
-PORT_MIN=10000
+PORT_MIN=46000
 PORT_MAX=65535
 
+# 检查是否是 root 用户
 is_root() { [[ "${EUID}" -eq 0 ]]; }
+
+# 检查端口是否空闲
 is_port_free() { ss -lnt | awk '{print $4}' | grep -qE "[:.]$1$" && return 1 || return 0; }
 
+# 安装依赖
 install_deps() {
   apt-get update -y >/dev/null
   apt-get install -y curl unzip openssl ca-certificates iproute2 >/dev/null
 }
 
+# 安装 Xray
 install_xray() {
   bash <(curl -Ls https://github.com/XTLS/Xray-install/raw/main/install-release.sh) >/dev/null
 }
 
+# 生成 UUID
 gen_uuid() {
   UUID="${uuid:-$(cat /proc/sys/kernel/random/uuid)}"
 }
 
+# 选择端口
 choose_port() {
   if [[ -n "${vlpt:-}" ]]; then
     PORT="$vlpt"
@@ -40,6 +46,7 @@ choose_port() {
   fi
 }
 
+# 生成 Reality 密钥
 gen_reality_keys() {
   local KEYS
   KEYS="$("$XRAY_BIN" x25519)"
@@ -48,6 +55,7 @@ gen_reality_keys() {
   SHORT_ID="$(openssl rand -hex 4)"
 }
 
+# 写入 Xray 配置文件
 write_config() {
 mkdir -p /usr/local/etc/xray
 cat > "$XRAY_CONF" <<JSON
@@ -76,6 +84,7 @@ cat > "$XRAY_CONF" <<JSON
 JSON
 }
 
+# 保存环境变量
 save_env() {
 cat > "$ENV_FILE" <<ENV
 SERVER_IP=$SERVER_IP
@@ -88,6 +97,7 @@ ENV
 chmod 600 "$ENV_FILE"
 }
 
+# 安装命令
 cmd_install() {
   is_root || exit 1
   install_deps
@@ -108,11 +118,13 @@ cmd_install() {
   echo "安装完成，运行：bash rv.sh info"
 }
 
+# 查看连接信息命令
 cmd_info() {
   source "$ENV_FILE"
   echo "vless://${UUID}@${SERVER_IP}:${PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${SNI}&fp=chrome&pbk=${PUBLIC_KEY}&sid=${SHORT_ID}&type=tcp#RV-Tesla-Vision"
 }
 
+# 卸载命令
 cmd_uninstall() {
   systemctl stop xray || true
   systemctl disable xray || true
@@ -120,10 +132,10 @@ cmd_uninstall() {
   curl -Ls https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove
 }
 
+# 解析命令行参数
 case "$1" in
   install) cmd_install ;;
   info) cmd_info ;;
   uninstall) cmd_uninstall ;;
   *) echo "用法: bash rv.sh install|info|uninstall" ;;
 esac
-EOF
