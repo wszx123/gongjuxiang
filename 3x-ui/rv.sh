@@ -12,7 +12,7 @@ XRAY_CONF="/usr/local/etc/xray/config.json"
 SERVICE="xray"
 
 REYM_DEFAULT="www.tesla.com"
-PORT_MIN=46000
+PORT_MIN=10000
 PORT_MAX=65535
 
 # 检查是否是 root 用户
