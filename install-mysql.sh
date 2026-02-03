@@ -3,8 +3,8 @@ set -e
 
 # === 配置变量（根据需要修改，MYSQL_PASS密码务必要修改） ===
 MYSQL_VERSION="8.0"
-MYSQL_DB="wszx123_db"
-MYSQL_USER="wszx123_user"
+MYSQL_DB="wszx123"
+MYSQL_USER="wszx123"
 MYSQL_PASS="password@123@DDD"
 
 echo ">>> 添加 MySQL 官方 APT 源..."
