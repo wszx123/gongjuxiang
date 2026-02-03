@@ -10,18 +10,17 @@ MYSQL_PASS="password@123@DDD"
 echo ">>> 更新系统..."
 apt update
 
-echo ">>> 安装 MySQL Server（Debian 官方源）..."
-DEBIAN_FRONTEND=noninteractive apt install -y mysql-server
+echo ">>> 安装 MariaDB（Debian 12 官方 default-mysql-server）..."
+DEBIAN_FRONTEND=noninteractive apt install -y default-mysql-server
 
-echo ">>> 启动并设置 MySQL 开机自启..."
-systemctl enable mysql
-systemctl start mysql
+echo ">>> 启动并设置数据库开机自启..."
+systemctl enable mariadb
+systemctl start mariadb
 
-echo ">>> 配置 MySQL root 账号（切换为密码登录）..."
+echo ">>> 设置 root 密码并切换为密码登录..."
 mysql <<EOF
 ALTER USER 'root'@'localhost'
-IDENTIFIED WITH mysql_native_password
-BY '${MYSQL_PASS}';
+IDENTIFIED BY '${MYSQL_PASS}';
 FLUSH PRIVILEGES;
 EOF
 
@@ -48,9 +47,9 @@ echo ">>> 重启 PHP-FPM..."
 systemctl restart php8.2-fpm || true
 
 echo "================================================="
-echo " MySQL 安装完成"
-echo " 数据库名: ${MYSQL_DB}"
-echo " 用户名:   ${MYSQL_USER}"
-echo " 密码:     ${MYSQL_PASS}"
+echo " 数据库类型: MariaDB (MySQL 兼容)"
+echo " 数据库名:   ${MYSQL_DB}"
+echo " 用户名:     ${MYSQL_USER}"
+echo " 密码:       ${MYSQL_PASS}"
 echo "================================================="
 echo " SQLite3 和 PHP SQLite3 扩展已安装"
