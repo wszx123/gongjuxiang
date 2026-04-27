@@ -363,7 +363,7 @@ ssl_cert_issue() {
     # get the domain here, and we need to verify it
     local domain=""
     while true; do
-        read -rp "Please enter your domain name: " domain
+        read -rp "请输入您的域名: " domain
         domain="${domain// /}"  # Trim whitespace
         
         if [[ -z "$domain" ]]; then
