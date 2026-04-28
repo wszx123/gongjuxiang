@@ -472,7 +472,7 @@ ssl_cert_issue() {
     if [[ -f "/root/cert/${domain}/privkey.pem" && -f "/root/cert/${domain}/fullchain.pem" && ( ${installRc} -eq 0 || ${installWroteFiles} -eq 1 ) ]]; then
         echo -e "${green}Installing certificate succeeded, enabling auto renew...${plain}"
     else
-        echo -e "${red}Installing certificate failed, exiting.${plain}"
+        echo -e "${red}安装证书失败，退出.${plain}"
         if [[ ${cert_exists} -eq 0 ]]; then
             rm -rf ~/.acme.sh/${domain}
         fi
@@ -564,7 +564,7 @@ prompt_and_setup_ssl() {
                 SSL_HOST="${server_ip}"
             fi
         else
-            echo -e "${red}SSL certificate setup failed for domain mode.${plain}"
+            echo -e "${red}域模式的SSL证书设置失败.${plain}"
             SSL_HOST="${server_ip}"
         fi
         ;;
@@ -724,7 +724,7 @@ config_after_install() {
             echo -e "${green}访问地址:  https://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${yellow}⚠ 重要: 请安全保存这些凭据!${plain}"
-            echo -e "${yellow}⚠ SSL Certificate: Enabled and configured${plain}"
+            echo -e "${yellow}⚠ SSL证书：已启用并配置${plain}"
         else
             local config_webBasePath=$(gen_random_string 18)
             echo -e "${yellow}WebBasePath is missing or too short. Generating a new one...${plain}"
