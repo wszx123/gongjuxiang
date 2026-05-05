@@ -434,7 +434,7 @@ ssl_cert_issue() {
     reloadCmd="systemctl restart x-ui || rc-service x-ui restart"
     echo -e "${green}Default --reloadcmd for ACME is: ${yellow}systemctl restart x-ui || rc-service x-ui restart${plain}"
     echo -e "${green}This command will run on every certificate issue and renew.${plain}"
-    read -rp "Would you like to modify --reloadcmd for ACME? (y/n): " setReloadcmd
+    read -rp "您是否需要修改ACME的--reloadcmd参数? (y/n): " setReloadcmd
     if [[ "$setReloadcmd" == "y" || "$setReloadcmd" == "Y" ]]; then
         echo -e "\n${green}\t1.${plain} Preset: systemctl reload nginx ; systemctl restart x-ui"
         echo -e "${green}\t2.${plain} Input your own command"
@@ -706,8 +706,8 @@ config_after_install() {
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${green}     SSL Certificate Setup (MANDATORY)     ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "${yellow}For security, SSL certificate is required for all panels.${plain}"
-            echo -e "${yellow}Let's Encrypt now supports both domains and IP addresses!${plain}"
+            echo -e "${yellow}为了安全起见，所有面板都需要SSL证书.${plain}"
+            echo -e "${yellow}Let’s Encrypt现在支持域和IP地址!${plain}"
             echo ""
 
             prompt_and_setup_ssl "${config_port}" "${config_webBasePath}" "${server_ip}"
