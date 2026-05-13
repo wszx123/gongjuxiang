@@ -342,7 +342,7 @@ get_info() {
       argodomain=$(sed -n 's|.*https://\([^/]*trycloudflare\.com\).*|\1|p' "${work_dir}/argo.log")
   fi
 
-  green "\nArgoDomain：${green}$argodomain${re}\n"
+  green "\nArgoDomain：${red}$argodomain${green}\n"
 
   cat > ${work_dir}/url.txt <<EOF
 vless://${UUID}@${IP}:${GRPC_PORT}??encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=1&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#${isp}
