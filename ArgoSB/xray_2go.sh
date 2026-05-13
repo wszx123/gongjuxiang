@@ -331,7 +331,7 @@ get_info() {
 
   if [ -f "${work_dir}/argo.log" ]; then
       for i in {1..5}; do
-          purple "第 $i 次尝试获取ArgoDoamin中..."
+          green "第 $i 次尝试获取ArgoDoamin中..."
           argodomain=$(sed -n 's|.*https://\([^/]*trycloudflare\.com\).*|\1|p' "${work_dir}/argo.log")
           [ -n "$argodomain" ] && break
           sleep 2
@@ -342,7 +342,7 @@ get_info() {
       argodomain=$(sed -n 's|.*https://\([^/]*trycloudflare\.com\).*|\1|p' "${work_dir}/argo.log")
   fi
 
-  green "\nArgoDomain：${purple}$argodomain${re}\n"
+  green "\nArgoDomain：${green}$argodomain${re}\n"
 
   cat > ${work_dir}/url.txt <<EOF
 vless://${UUID}@${IP}:${GRPC_PORT}??encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=1&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#${isp}
@@ -708,7 +708,7 @@ green "3. 修改xhttp-reality端口"
 skyblue "------------"
 green "4. 修改reality节点伪装域名"
 skyblue "------------"
-purple "${purple}0. 返回主菜单"
+purple "${red}0. 返回主菜单"
 skyblue "------------"
 reading "请输入选择: " choice
 case "${choice}" in
