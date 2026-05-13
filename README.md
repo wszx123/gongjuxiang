@@ -44,3 +44,10 @@ bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads
 ```
 bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/3x-ui/install-3x-ui.sh)
 ```
+
+# 六、添加一键无脑隧道脚本
+- 【来自eooce：https://github.com/eooce/xray-2go，感谢】
+- 一键脚本：
+```
+bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/xray_2go.sh)
+```
