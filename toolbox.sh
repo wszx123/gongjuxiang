@@ -16,9 +16,9 @@ back_to_menu() {
 # 常用命令函数
 common_commands() {
     clear
-    echo "#############################################################"
+    echo "############################################################"
     echo -e "${GREEN}=== 常用命令 ===${NC}"
-    echo "#############################################################"
+    echo "############################################################"
     echo "1. 系统信息查询"
     echo "2. 系统优化"
     echo "3. ★一键升级"
@@ -26,15 +26,21 @@ common_commands() {
     echo "5. X-UI-F大独立版"
     echo "6. F大warp添加IPV4"
     echo "7. ★安装hy2"
-    echo "8. ★安装 3X-UI"
+    echo "8. ★安装 新版3X-UI"
     echo "9. 安装F大argox隧道"
     echo "10. 删除argox脚本"
     echo "11. 梭哈脚本"
     echo "12. 查看梭哈"
-    echo "13. 融合怪命令1【综合测试】"
-    echo "14. 融合怪命令2【三网测试】"
-    echo "15. 解锁测试"
-    echo "16. 更新系统"
+    echo "13. 一键无脑隧道-修改"
+    echo "------------------------------------------------------------"
+    echo "14. 融合怪命令1【综合测试】"
+    echo "15. 融合怪命令2【三网测试】"
+    echo "16. 硬件测试3【综合测试】"
+    echo "17. 硬件测试4【基本信息】"
+    echo "18. 硬件测试5【IP质量】"
+    echo "19. 硬件测试5【网络质量、回程路由】"
+    echo "20. 解锁测试"
+    echo "21. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-16): " choice
@@ -187,8 +193,8 @@ common_commands() {
             main_menu 
             ;;
         8)
-            echo "安装3X-UI..."
-            bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/3x-ui/install-3x-ui.sh)
+            echo "安装新版3X-UI..."
+            bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/3x-ui/install-3x-ui-2.sh)
             main_menu 
             ;;
         9)
@@ -212,21 +218,46 @@ common_commands() {
             main_menu 
             ;;
         13)
+            echo "一键无脑隧道-修改..."
+            bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/xray_2go.sh)
+            main_menu 
+            ;;
+        14)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
-        14)
+        15)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
-        15)
+        16)
+            echo "硬件测试3【综合测试】..."
+            bash <(curl -sL https://run.NodeQuality.com)
+            main_menu 
+            ;;
+        17)
+            echo "硬件测试4【基本信息】..."
+            bash <(curl -Ls https://Check.Place) -H
+            main_menu 
+            ;;
+        18)
+            echo "硬件测试5【IP质量】..."
+            bash <(curl -Ls https://Check.Place) -I
+            main_menu 
+            ;;
+        19)
+            echo "硬件测试5【网络质量、回程路由】..."
+            bash <(curl -Ls https://Check.Place) -N
+            main_menu 
+            ;;
+        20)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
-        16)
+        21)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
@@ -324,8 +355,9 @@ system_reinstall() {
     echo "6. 一键重装debian11【密码为KKK12356ws01，虚拟内存1G】"
     echo "7. 一键重装debian12【不修改密码】"
     echo "8. 一键重装debian12【密码为KKK12356ws01，虚拟内存1G】"
-    echo "9. 一键重装OpenVz/LXC【小内存LXC专用，其它慎用】"
-    echo "10. 重启"
+    echo "9. 一键重装debian12【密码为KKK12356ws01，虚拟内存2G，端口为50100】"
+    echo "10. 一键重装OpenVz/LXC【小内存LXC专用，其它慎用】"
+    echo "11. 重启"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-10): " subchoice
@@ -372,11 +404,16 @@ system_reinstall() {
             back_to_menu system_reinstall
             ;;
         9)
+            echo "一键重装debian12【密码为KKK12356ws01，虚拟内存2G，端口为50100】..."
+            bash <(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) -debian 12 -timezone "Asia/Shanghai" -pwd 'KKK12356ws01' -port "50100" -hostname "ws01-9527" -swap "2048" --bbr
+            back_to_menu system_reinstall
+            ;;
+        10)
             echo "一键重装OpenVz/LXC【小内存LXC专用，其它慎用】..."
             curl -so OsMutation.sh https://raw.githubusercontent.com/LloydAsp/OsMutation/main/OsMutation.sh && chmod u+x OsMutation.sh && bash OsMutation.sh
             back_to_menu system_reinstall
             ;;
-        10)
+        11)
             echo "重启系统..."
             reboot
             ;;
@@ -1231,7 +1268,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2025.8.29 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2026.5.25 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
