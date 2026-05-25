@@ -821,10 +821,10 @@ config_after_install() {
             local db_label="SQLite (/etc/x-ui/x-ui.db)"
             echo ""
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "${green}     Database Selection                    ${plain}"
+            echo -e "${green}     数据库选择                    ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "  1) SQLite     (default — recommended for < 1000 clients)"
-            echo -e "  2) PostgreSQL (recommended for high client counts / many nodes)"
+            echo -e "  1) SQLite     (默认值--建议<1000个客户端使用)"
+            echo -e "  2) PostgreSQL (建议用于高客户端数/多节点)"
             read -rp "Choose [1]: " db_choice
             db_choice="${db_choice:-1}"
             if [[ "$db_choice" == "2" ]]; then
@@ -891,24 +891,24 @@ EOF
                 fi
             fi
 
-            read -rp "Would you like to customize the Panel Port settings? (If not, a random port will be applied) [y/n]: " config_confirm
+            read -rp "您想自定义面板端口设置吗？（如果没有，将应用随机端口） [y/n]: " config_confirm
             if [[ "${config_confirm}" == "y" || "${config_confirm}" == "Y" ]]; then
-                read -rp "Please set up the panel port: " config_port
-                echo -e "${yellow}Your Panel Port is: ${config_port}${plain}"
+                read -rp "请设置面板端口: " config_port
+                echo -e "${yellow}您的面板端口为: ${config_port}${plain}"
             else
                 local config_port=$(shuf -i 1024-62000 -n 1)
-                echo -e "${yellow}Generated random port: ${config_port}${plain}"
+                echo -e "${yellow}生成随机端口: ${config_port}${plain}"
             fi
 
             ${xui_folder}/x-ui setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
 
             echo ""
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "${green}     SSL Certificate Setup (RECOMMENDED)   ${plain}"
+            echo -e "${green}     SSL证书设置 (RECOMMENDED)   ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "${yellow}SSL is strongly recommended. Skip only if a reverse proxy${plain}"
-            echo -e "${yellow}or SSH tunnel handles TLS for you.${plain}"
-            echo -e "${yellow}Let's Encrypt now supports both domains and IP addresses!${plain}"
+            echo -e "${yellow}强烈建议使用SSL。仅在反向代理时跳过${plain}"
+            echo -e "${yellow}或者SSH隧道为您处理TLS.${plain}"
+            echo -e "${yellow}Let’s Encrypt现在支持域和IP地址!${plain}"
             echo ""
 
             prompt_and_setup_ssl "${config_port}" "${config_webBasePath}" "${server_ip}"
@@ -945,15 +945,15 @@ EOF
             if [[ -z "${existing_cert}" ]]; then
                 echo ""
                 echo -e "${green}═══════════════════════════════════════════${plain}"
-                echo -e "${green}     SSL Certificate Setup (RECOMMENDED)   ${plain}"
+                echo -e "${green}     SSL证书设置 (RECOMMENDED)   ${plain}"
                 echo -e "${green}═══════════════════════════════════════════${plain}"
-                echo -e "${yellow}Let's Encrypt now supports both domains and IP addresses!${plain}"
+                echo -e "${yellow}Let’s Encrypt现在支持域和IP地址!${plain}"
                 echo ""
                 prompt_and_setup_ssl "${existing_port}" "${config_webBasePath}" "${server_ip}"
-                echo -e "${green}Access URL:  ${SSL_SCHEME}://${SSL_HOST}:${existing_port}/${config_webBasePath}${plain}"
+                echo -e "${green}访问网址:  ${SSL_SCHEME}://${SSL_HOST}:${existing_port}/${config_webBasePath}${plain}"
             else
                 # If a cert already exists, just show the access URL
-                echo -e "${green}Access URL: https://${server_ip}:${existing_port}/${config_webBasePath}${plain}"
+                echo -e "${green}访问网址: https://${server_ip}:${existing_port}/${config_webBasePath}${plain}"
             fi
         fi
     else
@@ -961,7 +961,7 @@ EOF
             local config_username=$(gen_random_string 10)
             local config_password=$(gen_random_string 10)
 
-            echo -e "${yellow}Default credentials detected. Security update required...${plain}"
+            echo -e "${yellow}检测到默认凭据。需要安全更新...${plain}"
             ${xui_folder}/x-ui setting -username "${config_username}" -password "${config_password}"
             echo -e "生成了新的随机登录凭据:"
             echo -e "###############################################"
@@ -1002,7 +1002,7 @@ install_x-ui() {
             echo -e "${yellow}Trying to fetch version with IPv4...${plain}"
             tag_version=$(curl -4 -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
             if [[ ! -n "$tag_version" ]]; then
-                echo -e "${red}Failed to fetch x-ui version, it may be due to GitHub API restrictions, please try it later${plain}"
+                echo -e "${red}获取x-ui版本失败，可能是由于GitHub API限制，请稍后重试${plain}"
                 exit 1
             fi
         fi
