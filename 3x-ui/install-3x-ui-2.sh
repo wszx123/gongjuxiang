@@ -111,10 +111,11 @@ gen_random_string() {
 }
 
 install_postgres_local() {
-    local pg_user="xui"
-    local pg_db="xui"
-    local pg_pass
+    local pg_user pg_pass
     pg_pass=$(gen_random_string 24)
+    local pg_db="xui"
+    local pg_host="127.0.0.1"
+    local pg_port="5432"
 
     case "${release}" in
         ubuntu | debian | armbian)
@@ -170,20 +171,50 @@ install_postgres_local() {
         sleep 1
     done
 
-    # Idempotent role/db creation.
+    local existing_owner=""
+    existing_owner=$(sudo -u postgres psql -tAc \
+        "SELECT pg_catalog.pg_get_userbyid(datdba) FROM pg_database WHERE datname='${pg_db}'" 2> /dev/null \
+        | tr -d '[:space:]')
+    if [[ -n "${existing_owner}" && "${existing_owner}" != "postgres" ]]; then
+        pg_user="${existing_owner}"
+    else
+        pg_user=$(gen_random_string 8)
+    fi
+
+    # Idempotent role/db creation. Identifiers are double-quoted because a
+    # random username may start with a digit, which Postgres rejects unquoted.
     sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${pg_user}'" 2> /dev/null \
         | grep -q 1 \
-        || sudo -u postgres psql -c "CREATE USER ${pg_user} WITH PASSWORD '${pg_pass}';" >&2 || return 1
+        || sudo -u postgres psql -c "CREATE USER \"${pg_user}\" WITH PASSWORD '${pg_pass}';" >&2 || return 1
 
     sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${pg_db}'" 2> /dev/null \
         | grep -q 1 \
-        || sudo -u postgres psql -c "CREATE DATABASE ${pg_db} OWNER ${pg_user};" >&2 || return 1
+        || sudo -u postgres psql -c "CREATE DATABASE \"${pg_db}\" OWNER \"${pg_user}\";" >&2 || return 1
 
-    sudo -u postgres psql -c "ALTER USER ${pg_user} WITH PASSWORD '${pg_pass}';" >&2 || return 1
+    sudo -u postgres psql -c "ALTER USER \"${pg_user}\" WITH PASSWORD '${pg_pass}';" >&2 || return 1
 
     local pg_pass_enc
     pg_pass_enc=$(printf '%s' "${pg_pass}" | sed -e 's/%/%25/g' -e 's/:/%3A/g' -e 's/@/%40/g' -e 's|/|%2F|g' -e 's/?/%3F/g' -e 's/#/%23/g')
-    echo "postgres://${pg_user}:${pg_pass_enc}@127.0.0.1:5432/${pg_db}?sslmode=disable"
+
+    if [[ -n "${PG_CRED_FILE:-}" ]]; then
+        local prev_umask
+        prev_umask=$(umask)
+        umask 077
+        if ! cat > "${PG_CRED_FILE}" << EOF; then
+PG_USER=${pg_user}
+PG_PASS=${pg_pass}
+PG_HOST=${pg_host}
+PG_PORT=${pg_port}
+PG_DB=${pg_db}
+EOF
+            umask "${prev_umask}"
+            echo -e "${red}Failed to write PostgreSQL credentials to ${PG_CRED_FILE}${plain}" >&2
+            return 1
+        fi
+        umask "${prev_umask}"
+    fi
+
+    echo "postgres://${pg_user}:${pg_pass_enc}@${pg_host}:${pg_port}/${pg_db}?sslmode=disable"
     return 0
 }
 
@@ -823,7 +854,7 @@ config_after_install() {
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${green}     数据库选择                    ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "  1) SQLite     (默认值--建议<1000个客户端使用)"
+            echo -e "  1) SQLite     (默认值--建议<500个客户端使用)"
             echo -e "  2) PostgreSQL (建议用于高客户端数/多节点)"
             read -rp "Choose [1]: " db_choice
             db_choice="${db_choice:-1}"
@@ -843,6 +874,7 @@ config_after_install() {
 
                 local xui_dsn=""
                 local pg_mode=""
+                local pg_local_installed=0
                 while [[ -z "$xui_dsn" ]]; do
                     echo ""
                     echo -e "  1) Install PostgreSQL locally and create a dedicated user/db (recommended)"
@@ -857,9 +889,23 @@ config_after_install() {
                         db_label="PostgreSQL (external)"
                     else
                         echo -e "${yellow}Installing PostgreSQL — this may take a moment...${plain}"
-                        if xui_dsn=$(install_postgres_local); then
-                            db_label="PostgreSQL (xui@127.0.0.1:5432/xui)"
+                        local pg_cred_file
+                        pg_cred_file=$(mktemp 2> /dev/null) || pg_cred_file=$(mktemp -t x-ui-pg-creds.XXXXXXXX)
+                        if [[ -z "${pg_cred_file}" ]]; then
+                            echo -e "${red}Failed to create temporary credentials file.${plain}"
+                            xui_dsn=""
+                            continue
+                        fi
+                        if xui_dsn=$(PG_CRED_FILE="${pg_cred_file}" install_postgres_local); then
+                            pg_local_installed=1
+                            if [[ -r "${pg_cred_file}" ]]; then
+                                # shellcheck disable=SC1090
+                                source "${pg_cred_file}"
+                            fi
+                            rm -f "${pg_cred_file}"
+                            db_label="PostgreSQL (${PG_USER}@${PG_HOST}:${PG_PORT}/${PG_DB})"
                         else
+                            rm -f "${pg_cred_file}"
                             echo ""
                             echo -e "${red}PostgreSQL installation failed.${plain}"
                             echo -e "  1) Retry local install"
@@ -870,8 +916,15 @@ config_after_install() {
                             pg_fail="${pg_fail:-1}"
                             case "$pg_fail" in
                                 2) pg_mode="2" ;;
-                                3) echo -e "${red}Install aborted.${plain}"; exit 1 ;;
-                                4) db_choice="1"; xui_dsn=""; break ;;
+                                3)
+                                    echo -e "${red}Install aborted.${plain}"
+                                    exit 1
+                                    ;;
+                                4)
+                                    db_choice="1"
+                                    xui_dsn=""
+                                    break
+                                    ;;
                                 *) xui_dsn="" ;;
                             esac
                         fi
@@ -927,7 +980,7 @@ EOF
             echo -e "${green}WebBasePath: ${config_webBasePath}${plain}"
             echo -e "${green}数据库: ${db_label}${plain}"
             echo -e "${green}访问地址: ${SSL_SCHEME}://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
-            echo -e "${green}API Token:   ${config_apiToken}${plain}"
+            echo -e "${green}API Token: ${config_apiToken}${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${yellow}⚠ 重要: 请安全保存这些凭据!${plain}"
             if [[ "$SSL_SCHEME" == "https" ]]; then
@@ -935,9 +988,31 @@ EOF
             else
                 echo -e "${yellow}⚠ SSL证书：已跳过——面板仅支持HTTP。使用反向代理或SSH隧道.${plain}"
             fi
+
+            if [[ "$db_choice" == "2" && "$pg_local_installed" == "1" ]]; then
+                echo ""
+                echo -e "${green}═══════════════════════════════════════════${plain}"
+                echo -e "${green}     PostgreSQL 凭证               ${plain}"
+                echo -e "${green}═══════════════════════════════════════════${plain}"
+                echo -e "${green}数据库名称: ${PG_DB}${plain}"
+                echo -e "${green}用户名: ${PG_USER}${plain}"
+                echo -e "${green}密码: ${PG_PASS}${plain}"
+                echo -e "${green}主机: ${PG_HOST}${plain}"
+                echo -e "${green}端口: ${PG_PORT}${plain}"
+                echo -e "${green}DSN: ${xui_dsn}${plain}"
+                echo -e "${green}Env文件: ${xui_env_file}${plain}"
+                echo -e "${green}-------------------------------------------${plain}"
+                echo -e "${green}Connect from this server:${plain}"
+                echo -e "  ${blue}sudo -u postgres psql -d ${PG_DB}${plain}      (as the postgres superuser)"
+                echo -e "  ${blue}PGPASSWORD='${PG_PASS}' psql -h ${PG_HOST} -p ${PG_PORT} -U ${PG_USER} -d ${PG_DB}${plain}"
+                echo -e "${green}═══════════════════════════════════════════${plain}"
+                echo -e "${yellow}⚠ 面板从以下位置读取这些凭据 ${xui_env_file}.${plain}"
+                echo -e "${yellow}⚠ 保存密码——它不会以纯文本形式存储在其他任何地方.${plain}"
+                unset PG_USER PG_PASS PG_HOST PG_PORT PG_DB
+            fi
         else
             local config_webBasePath=$(gen_random_string 18)
-            echo -e "${yellow}WebBasePath缺失或太短。生成一个新的...${plain}"
+            echo -e "${yellow}WebBasePath is missing or too short. Generating a new one...${plain}"
             ${xui_folder}/x-ui setting -webBasePath "${config_webBasePath}"
             echo -e "${green}New WebBasePath: ${config_webBasePath}${plain}"
 
@@ -947,7 +1022,7 @@ EOF
                 echo -e "${green}═══════════════════════════════════════════${plain}"
                 echo -e "${green}     SSL证书设置 (RECOMMENDED)   ${plain}"
                 echo -e "${green}═══════════════════════════════════════════${plain}"
-                echo -e "${yellow}Let’s Encrypt现在支持域和IP地址!${plain}"
+                echo -e "${yellow}Let's 现在支持域和IP地址!${plain}"
                 echo ""
                 prompt_and_setup_ssl "${existing_port}" "${config_webBasePath}" "${server_ip}"
                 echo -e "${green}访问网址:  ${SSL_SCHEME}://${SSL_HOST}:${existing_port}/${config_webBasePath}${plain}"
@@ -980,10 +1055,10 @@ EOF
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${green}     SSL证书设置 (RECOMMENDED)   ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
-            echo -e "${yellow}Let's Encrypt现在支持域和IP地址！${plain}"
+            echo -e "${yellow}Let's Encrypt 现在支持域和IP地址！${plain}"
             echo ""
             prompt_and_setup_ssl "${existing_port}" "${existing_webBasePath}" "${server_ip}"
-            echo -e "${green}访问网址: ${SSL_SCHEME}://${SSL_HOST}:${existing_port}/${existing_webBasePath}${plain}"
+            echo -e "${green}访问网址:  ${SSL_SCHEME}://${SSL_HOST}:${existing_port}/${existing_webBasePath}${plain}"
         else
             echo -e "${green}SSL证书已配置。无需采取任何行动.${plain}"
         fi
@@ -1172,7 +1247,7 @@ install_x-ui() {
     echo -e "${green}x-ui ${tag_version}${plain} 安装已完成，正在运行..."
     echo -e ""
     echo -e "═══════════════════════════════════════════
-  ${blue}x-ui 控制菜单使用方法 (子命令):${plain}
+  ${blue}x-ui 控制菜单使用方法 (子命令 v3.2版本, 20260531):${plain}
 
   ${blue}x-ui${plain}              - 管理脚本
   ${blue}x-ui start${plain}        - 启动
