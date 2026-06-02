@@ -1068,7 +1068,7 @@ while true; do
    clear
    echo ""
    green "===== Xray-2go一键安装脚本 ====="
-   purple "-------- ws01 v20260518 --------\n"
+   purple "-------- ws01 v20260602 --------\n"
    red " Xray 状态: ${check_xray_status}"
    red " Argo 状态: ${check_argo_status}"   
    red "Caddy 状态: ${check_caddy_status}"
