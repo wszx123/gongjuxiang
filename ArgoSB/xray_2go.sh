@@ -357,7 +357,7 @@ vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.naz
 
 vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}&fp=chrome&type=ws&host=${argodomain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}
 
-vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argodomain}\", \"path\": \"/vmess-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argodomain}\", \"alpn\": \"\", \"fp\": \"chrome\"}" | base64 -w0)
+vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argodomain}\", \"path\": \"/vmess-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argodomain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)
 
 EOF
 echo ""
@@ -730,7 +730,7 @@ case "${choice}" in
         for vmess_url in $vmess_urls; do
             encoded_vmess="${vmess_url#"$vmess_prefix"}"
             decoded_vmess=$(echo "$encoded_vmess" | base64 --decode)
-            updated_vmess=$(echo "$decoded_vmess" | jq --arg new_uuid "$new_uuid" '.id = $new_uuid')
+            updated_vmess=$(echo "$decoded_vmess" | jq --arg new_uuid "$new_uuid" '.id = $new_uuid | .allowInsecure = false')
             encoded_updated_vmess=$(echo "$updated_vmess" | base64 | tr -d '\n')
             new_vmess_url="$vmess_prefix$encoded_updated_vmess"
             content=$(echo "$content" | sed "s|$vmess_url|$new_vmess_url|")
@@ -1025,7 +1025,7 @@ change_argo_domain() {
     for vmess_url in $vmess_urls; do
         encoded_vmess="${vmess_url#"$vmess_prefix"}"
         decoded_vmess=$(echo "$encoded_vmess" | base64 --decode)
-        updated_vmess=$(echo "$decoded_vmess" | jq --arg new_domain "$ArgoDomain" '.host = $new_domain | .sni = $new_domain')
+        updated_vmess=$(echo "$decoded_vmess" | jq --arg new_domain "$ArgoDomain" '.host = $new_domain | .sni = $new_domain | .allowInsecure = false')
         encoded_updated_vmess=$(echo "$updated_vmess" | base64 | tr -d '\n')
         new_vmess_url="$vmess_prefix$encoded_updated_vmess"
         content=$(echo "$content" | sed "s|$vmess_url|$new_vmess_url|")
