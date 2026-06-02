@@ -684,7 +684,7 @@ create_shortcut() {
   cat > "$work_dir/2go.sh" << EOF
 #!/usr/bin/env bash
 
-bash <(curl -Ls https://github.com/eooce/xray-2go/raw/main/xray_2go.sh) \$1
+bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/xray_2go.sh) \$1
 EOF
   chmod +x "$work_dir/2go.sh"
   ln -sf "$work_dir/2go.sh" /usr/bin/2go
