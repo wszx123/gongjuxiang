@@ -1278,7 +1278,6 @@ classic_cloudreve() {
     local default_port=5212
     local compose_dir="/home/docker/cloud"
     local docker_describe="Cloudreve 是一个支持多家云存储的网盘系统"
-    local docker_url="视频介绍: https://www.bilibili.com/video/BV13F4m1c7h7?t=0.1"
     local gh_proxy="${gh_proxy:-https://gh.kejilion.pro/}"
 
     while true; do
