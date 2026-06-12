@@ -1066,11 +1066,534 @@ install_typecho() {
     esac
 }
 
+# 经典应用通用函数
+classic_compose() {
+    if docker compose version >/dev/null 2>&1; then
+        docker compose "$@"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        docker-compose "$@"
+    else
+        echo -e "${RED}未检测到 docker compose，请先安装 Docker Compose 插件${NC}"
+        return 1
+    fi
+}
+
+classic_ensure_docker() {
+    if command -v docker >/dev/null 2>&1; then
+        return 0
+    fi
+
+    echo -e "${YELLOW}未检测到 Docker，正在安装 Docker...${NC}"
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL https://get.docker.com | sh
+    else
+        apt update && apt install -y curl
+        curl -fsSL https://get.docker.com | sh
+    fi
+
+    if ! command -v docker >/dev/null 2>&1; then
+        echo -e "${RED}Docker 安装失败，请检查网络或手动安装后重试${NC}"
+        return 1
+    fi
+}
+
+classic_port_in_use() {
+    local port="$1"
+    if command -v ss >/dev/null 2>&1; then
+        ss -tuln | awk '{print $5}' | grep -Eq "[:.]${port}$"
+    elif command -v netstat >/dev/null 2>&1; then
+        netstat -tuln | awk '{print $4}' | grep -Eq "[:.]${port}$"
+    else
+        return 1
+    fi
+}
+
+classic_read_port() {
+    local default_port="$1"
+    read -p "输入应用对外服务端口，回车默认使用${default_port}端口: " app_port
+    app_port=${app_port:-$default_port}
+    docker_port="$app_port"
+
+    if classic_port_in_use "$docker_port"; then
+        echo -e "${YELLOW}端口 ${docker_port} 可能已被占用，请确认没有冲突。${NC}"
+        read -p "是否继续使用该端口？(y/N): " continue_choice
+        case "$continue_choice" in
+            y|Y) ;;
+            *) echo "已取消安装"; return 1 ;;
+        esac
+    fi
+}
+
+classic_public_ip() {
+    local ip
+    ip=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null)
+    if [ -z "$ip" ]; then
+        ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    fi
+    echo "$ip"
+}
+
+classic_show_access() {
+    local ip
+    ip=$(classic_public_ip)
+    echo "------------------------"
+    echo -e "${GREEN}${app_name:-$docker_name} 已完成${NC}"
+    if [ -n "$ip" ]; then
+        echo "访问地址: http://${ip}:${docker_port}"
+    else
+        echo "访问端口: ${docker_port}"
+    fi
+    [ -n "$docker_use" ] && eval "$docker_use"
+    [ -n "$docker_passwd" ] && eval "$docker_passwd"
+    echo "------------------------"
+}
+
+classic_container_exists() {
+    docker ps -a --format '{{.Names}}' 2>/dev/null | grep -Fxq "$docker_name"
+}
+
+classic_container_status() {
+    if classic_container_exists; then
+        if docker ps --format '{{.Names}}' 2>/dev/null | grep -Fxq "$docker_name"; then
+            echo -e "${GREEN}运行中${NC}"
+        else
+            echo -e "${YELLOW}已停止${NC}"
+        fi
+    else
+        echo -e "${RED}未安装${NC}"
+    fi
+}
+
+classic_current_port() {
+    docker port "$docker_name" 2>/dev/null | awk -F: '/->/ {print $NF}' | head -n 1
+}
+
+classic_confirm_uninstall() {
+    read -p "确认卸载 ${app_name:-$docker_name}？这会删除容器，可能删除本地数据。(y/N): " confirm
+    case "$confirm" in
+        y|Y) return 0 ;;
+        *) echo "已取消卸载"; return 1 ;;
+    esac
+}
+
+classic_docker_app() {
+    while true; do
+        clear
+        echo "#############################################################"
+        echo -e "${GREEN}=== ${app_name:-$docker_name} ===${NC}"
+        echo "#############################################################"
+        echo "状态: $(classic_container_status)"
+        echo "$docker_describe"
+        [ -n "$docker_url" ] && echo "$docker_url"
+        if classic_container_exists; then
+            local running_port
+            running_port=$(classic_current_port)
+            [ -n "$running_port" ] && echo "当前端口: $running_port"
+        fi
+        echo "------------------------"
+        echo "1. 安装"
+        echo "2. 更新"
+        echo "3. 卸载"
+        echo "4. 查看日志"
+        echo "0. 返回经典应用"
+        echo "------------------------"
+
+        read -p "请选择功能 (0-4): " app_choice
+        case $app_choice in
+            1)
+                if classic_container_exists; then
+                    echo -e "${YELLOW}${app_name:-$docker_name} 已安装，如需重装请先卸载或选择更新。${NC}"
+                    back_to_menu "$back_menu"
+                    return
+                fi
+                classic_ensure_docker || { back_to_menu "$back_menu"; return; }
+                classic_read_port "$docker_port" || { back_to_menu "$back_menu"; return; }
+                if docker_run; then
+                    classic_show_access
+                else
+                    echo -e "${RED}安装失败，请检查 Docker 日志或网络连接。${NC}"
+                fi
+                back_to_menu "$back_menu"
+                return
+                ;;
+            2)
+                if ! classic_container_exists; then
+                    echo -e "${YELLOW}未检测到容器，正在按默认端口安装...${NC}"
+                    classic_ensure_docker || { back_to_menu "$back_menu"; return; }
+                    if docker_run; then
+                        classic_show_access
+                    else
+                        echo -e "${RED}安装失败，请检查 Docker 日志或网络连接。${NC}"
+                    fi
+                    back_to_menu "$back_menu"
+                    return
+                fi
+                docker_port=$(classic_current_port)
+                docker_port=${docker_port:-$default_port}
+                docker pull "$docker_img"
+                docker rm -f "$docker_name"
+                if docker_run; then
+                    classic_show_access
+                else
+                    echo -e "${RED}更新失败，请检查 Docker 日志或网络连接。${NC}"
+                fi
+                back_to_menu "$back_menu"
+                return
+                ;;
+            3)
+                classic_confirm_uninstall || { back_to_menu "$back_menu"; return; }
+                docker rm -f "$docker_name" 2>/dev/null
+                docker rmi -f "$docker_img" 2>/dev/null
+                if [ -n "$docker_data_dir" ] && [ -d "$docker_data_dir" ]; then
+                    rm -rf "$docker_data_dir"
+                fi
+                echo "应用已卸载"
+                back_to_menu "$back_menu"
+                return
+                ;;
+            4)
+                docker logs --tail=100 "$docker_name"
+                back_to_menu "$back_menu"
+                return
+                ;;
+            0) classic_apps ;;
+            *) echo -e "${RED}无效选择${NC}" ; sleep 2 ;;
+        esac
+    done
+}
+
+classic_random_password() {
+    local file="$1"
+    if [ ! -f "$file" ]; then
+        mkdir -p "$(dirname "$file")"
+        tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16 > "$file"
+    fi
+    cat "$file"
+}
+
+classic_cloudreve() {
+    local app_name="Cloudreve网盘"
+    local docker_name="cloudreve"
+    local docker_port=5212
+    local default_port=5212
+    local compose_dir="/home/docker/cloud"
+    local docker_describe="Cloudreve 是一个支持多家云存储的网盘系统"
+    local docker_url="视频介绍: https://www.bilibili.com/video/BV13F4m1c7h7?t=0.1"
+    local gh_proxy="${gh_proxy:-https://gh.kejilion.pro/}"
+
+    while true; do
+        clear
+        echo "#############################################################"
+        echo -e "${GREEN}=== ${app_name} ===${NC}"
+        echo "#############################################################"
+        echo "状态: $(classic_container_status)"
+        echo "$docker_describe"
+        echo "$docker_url"
+        echo "------------------------"
+        echo "1. 安装"
+        echo "2. 更新"
+        echo "3. 卸载"
+        echo "4. 查看日志"
+        echo "0. 返回经典应用"
+        echo "------------------------"
+        read -p "请选择功能 (0-4): " app_choice
+
+        case $app_choice in
+            1)
+                if classic_container_exists; then
+                    echo -e "${YELLOW}${app_name} 已安装，如需重装请先卸载或选择更新。${NC}"
+                    back_to_menu classic_apps
+                    return
+                fi
+                classic_ensure_docker || { back_to_menu classic_apps; return; }
+                classic_read_port "$default_port" || { back_to_menu classic_apps; return; }
+                mkdir -p "$compose_dir"
+                cd "$compose_dir" || { echo -e "${RED}无法进入 $compose_dir${NC}"; back_to_menu classic_apps; return; }
+                mkdir -p temp_data cloudreve/uploads cloudreve/avatar aria2/config data/aria2
+                touch cloudreve/conf.ini cloudreve/cloudreve.db
+                chmod -R 777 data/aria2
+                curl -L -o "$compose_dir/docker-compose.yml" "${gh_proxy}raw.githubusercontent.com/kejilion/docker/main/cloudreve-docker-compose.yml"
+                if [ ! -s "$compose_dir/docker-compose.yml" ]; then
+                    echo -e "${RED}Cloudreve docker-compose.yml 下载失败，请检查网络。${NC}"
+                    back_to_menu classic_apps
+                    return
+                fi
+                sed -i "s/5212:5212/${docker_port}:5212/g" "$compose_dir/docker-compose.yml"
+                if classic_compose up -d; then
+                    classic_show_access
+                else
+                    echo -e "${RED}Cloudreve 安装失败，请检查 Docker Compose 日志。${NC}"
+                fi
+                back_to_menu classic_apps
+                return
+                ;;
+            2)
+                if [ ! -f "$compose_dir/docker-compose.yml" ]; then
+                    echo -e "${YELLOW}未找到 Cloudreve compose 文件，请先安装。${NC}"
+                    back_to_menu classic_apps
+                    return
+                fi
+                cd "$compose_dir" || { echo -e "${RED}无法进入 $compose_dir${NC}"; back_to_menu classic_apps; return; }
+                classic_compose down --rmi all
+                if classic_compose up -d; then
+                    docker_port=$(classic_current_port)
+                    docker_port=${docker_port:-$default_port}
+                    classic_show_access
+                else
+                    echo -e "${RED}Cloudreve 更新失败，请检查 Docker Compose 日志。${NC}"
+                fi
+                back_to_menu classic_apps
+                return
+                ;;
+            3)
+                classic_confirm_uninstall || { back_to_menu classic_apps; return; }
+                if [ -f "$compose_dir/docker-compose.yml" ]; then
+                    cd "$compose_dir" && classic_compose down --rmi all
+                else
+                    docker rm -f "$docker_name" 2>/dev/null
+                fi
+                rm -rf "$compose_dir"
+                echo "应用已卸载"
+                back_to_menu classic_apps
+                return
+                ;;
+            4)
+                docker logs --tail=100 "$docker_name"
+                back_to_menu classic_apps
+                return
+                ;;
+            0) classic_apps ;;
+            *) echo -e "${RED}无效选择${NC}" ; sleep 2 ;;
+        esac
+    done
+}
+
+classic_easyimage() {
+    local back_menu="classic_apps"
+    local app_name="简单图床图片管理程序"
+    local docker_name="easyimage"
+    local docker_img="ddsderek/easyimage:latest"
+    local docker_port=8014
+    local default_port=8014
+    local docker_data_dir="/home/docker/easyimage"
+    local docker_describe="简单图床是一个简单的图床程序"
+    local docker_url="官网介绍: https://github.com/icret/EasyImages2.0"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d \
+            --name easyimage \
+            -p ${docker_port}:80 \
+            -e TZ=Asia/Shanghai \
+            -e PUID=1000 \
+            -e PGID=1000 \
+            -v /home/docker/easyimage/config:/app/web/config \
+            -v /home/docker/easyimage/i:/app/web/i \
+            --restart=always \
+            ddsderek/easyimage:latest
+    }
+    classic_docker_app
+}
+
+classic_webssh() {
+    local back_menu="classic_apps"
+    local app_name="webssh网页版SSH连接工具"
+    local docker_name="webssh"
+    local docker_img="jrohy/webssh"
+    local docker_port=8040
+    local default_port=8040
+    local docker_data_dir=""
+    local docker_describe="简易在线 ssh 连接工具和 sftp 工具"
+    local docker_url="官网介绍: https://github.com/Jrohy/webssh"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d -p ${docker_port}:5032 --restart=always --name webssh -e TZ=Asia/Shanghai jrohy/webssh
+    }
+    classic_docker_app
+}
+
+classic_speedtest() {
+    local back_menu="classic_apps"
+    local app_name="Speedtest测速面板"
+    local docker_name="looking-glass"
+    local docker_img="wikihostinc/looking-glass-server"
+    local docker_port=8016
+    local default_port=8016
+    local docker_data_dir=""
+    local docker_describe="Speedtest测速面板是一个 VPS 网速测试工具，多项测试功能，还可以实时监控 VPS 进出站流量"
+    local docker_url="官网介绍: https://github.com/wikihost-opensource/als"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d --name looking-glass --restart=always -p ${docker_port}:80 wikihostinc/looking-glass-server
+    }
+    classic_docker_app
+}
+
+classic_uptime_kuma() {
+    local back_menu="classic_apps"
+    local app_name="UptimeKuma监控工具"
+    local docker_name="uptime-kuma"
+    local docker_img="louislam/uptime-kuma:latest"
+    local docker_port=8022
+    local default_port=8022
+    local docker_data_dir="/home/docker/uptime-kuma"
+    local docker_describe="Uptime Kuma 易于使用的自托管监控工具"
+    local docker_url="官网介绍: https://github.com/louislam/uptime-kuma"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d \
+            --name=uptime-kuma \
+            -p ${docker_port}:3001 \
+            -v /home/docker/uptime-kuma/uptime-kuma-data:/app/data \
+            --restart=always \
+            louislam/uptime-kuma:latest
+    }
+    classic_docker_app
+}
+
+classic_memos() {
+    local back_menu="classic_apps"
+    local app_name="Memos网页备忘录"
+    local docker_name="memos"
+    local docker_img="neosmemo/memos:stable"
+    local docker_port=8023
+    local default_port=8023
+    local docker_data_dir="/home/docker/memos"
+    local docker_describe="Memos 是一款轻量级、自托管的备忘录中心"
+    local docker_url="官网介绍: https://github.com/usememos/memos"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d --name memos -p ${docker_port}:5230 -v /home/docker/memos:/var/opt/memos --restart=always neosmemo/memos:stable
+    }
+    classic_docker_app
+}
+
+classic_searxng() {
+    local back_menu="classic_apps"
+    local app_name="searxng聚合搜索站"
+    local docker_name="searxng"
+    local docker_img="searxng/searxng"
+    local docker_port=8029
+    local default_port=8029
+    local docker_data_dir="/home/docker/searxng"
+    local docker_describe="searxng 是一个私有且隐私的搜索引擎站点"
+    local docker_url="官网介绍: https://hub.docker.com/r/searxng/searxng"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d \
+            --name searxng \
+            --restart=always \
+            -p ${docker_port}:8080 \
+            -v "/home/docker/searxng:/etc/searxng" \
+            searxng/searxng
+    }
+    classic_docker_app
+}
+
+classic_photoprism() {
+    local back_menu="classic_apps"
+    local app_name="PhotoPrism私有相册系统"
+    local docker_name="photoprism"
+    local docker_img="photoprism/photoprism:latest"
+    local docker_port=8030
+    local default_port=8030
+    local docker_data_dir="/home/docker/photoprism"
+    local rootpasswd
+    rootpasswd=$(classic_random_password "/home/docker/photoprism/admin_password.txt")
+    local docker_describe="PhotoPrism 是一个强大的私有相册系统"
+    local docker_url="官网介绍: https://www.photoprism.app/"
+    local docker_use="echo \"账号: admin  密码: $rootpasswd\""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d \
+            --name photoprism \
+            --restart=always \
+            --security-opt seccomp=unconfined \
+            --security-opt apparmor=unconfined \
+            -p ${docker_port}:2342 \
+            -e PHOTOPRISM_UPLOAD_NSFW="true" \
+            -e PHOTOPRISM_ADMIN_PASSWORD="$rootpasswd" \
+            -v /home/docker/photoprism/storage:/photoprism/storage \
+            -v /home/docker/photoprism/Pictures:/photoprism/originals \
+            photoprism/photoprism:latest
+    }
+    classic_docker_app
+}
+
+classic_sun_panel() {
+    local back_menu="classic_apps"
+    local app_name="Sun-Panel导航面板"
+    local docker_name="sun-panel"
+    local docker_img="hslr/sun-panel"
+    local docker_port=8033
+    local default_port=8033
+    local docker_data_dir="/home/docker/sun-panel"
+    local docker_describe="Sun-Panel 服务器、NAS 导航面板、Homepage、浏览器首页"
+    local docker_url="官网介绍: https://doc.sun-panel.top/zh_cn/"
+    local docker_use="echo \"账号: admin@sun.cc  密码: 12345678\""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d --restart=always -p ${docker_port}:3002 \
+            -v /home/docker/sun-panel/conf:/app/conf \
+            -v /home/docker/sun-panel/uploads:/app/uploads \
+            -v /home/docker/sun-panel/database:/app/database \
+            --name sun-panel \
+            hslr/sun-panel
+    }
+    classic_docker_app
+}
+
+classic_myip() {
+    local back_menu="classic_apps"
+    local app_name="MyIP工具箱"
+    local docker_name="myip"
+    local docker_img="jason5ng32/myip:latest"
+    local docker_port=8037
+    local default_port=8037
+    local docker_data_dir=""
+    local docker_describe="多功能 IP 工具箱，可以查看自己 IP 信息及连通性，用网页面板呈现"
+    local docker_url="官网介绍: https://github.com/jason5ng32/MyIP/blob/main/README_ZH.md"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d -p ${docker_port}:18966 --name myip jason5ng32/myip:latest
+    }
+    classic_docker_app
+}
+
+classic_pingvin_share() {
+    local back_menu="classic_apps"
+    local app_name="Pingvin-Share文件分享平台"
+    local docker_name="pingvin-share"
+    local docker_img="stonith404/pingvin-share"
+    local docker_port=8034
+    local default_port=8034
+    local docker_data_dir="/home/docker/pingvin-share"
+    local docker_describe="Pingvin Share 是一个可自建的文件分享平台，是 WeTransfer 的一个替代品"
+    local docker_url="官网介绍: https://github.com/stonith404/pingvin-share"
+    local docker_use=""
+    local docker_passwd=""
+    docker_run() {
+        docker run -d \
+            --name pingvin-share \
+            --restart=always \
+            -p ${docker_port}:3000 \
+            -v /home/docker/pingvin-share/data:/opt/app/backend/data \
+            stonith404/pingvin-share
+    }
+    classic_docker_app
+}
+
 # 经典应用函数
 classic_apps() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== 经典应用【未完成】 ===${NC}"
+    echo -e "${GREEN}=== 经典应用 ===${NC}"
     echo "#############################################################"
     echo "1. Cloudreve网盘"
     echo "2. 简单图床图片管理程序"
@@ -1088,62 +1611,17 @@ classic_apps() {
     read -p "请选择功能 (0-11): " choice
     
     case $choice in
-        1)
-            echo "安装Cloudreve网盘..."
-            # 从kejilion.sh中提取Cloudreve网盘的安装命令
-            # 例如：docker run -d --name cloudreve -p 5212:5212 -v /path/to/data:/cloudreve cloudreve/cloudreve
-            back_to_menu classic_apps
-            ;;
-        2)
-            echo "安装简单图床图片管理程序..."
-            # 从kejilion.sh中提取简单图床图片管理程序的安装命令
-            back_to_menu classic_apps
-            ;;
-        3)
-            echo "安装webssh网页版SSH连接工具..."
-            # 从kejilion.sh中提取webssh网页版SSH连接工具的安装命令
-            back_to_menu classic_apps
-            ;;
-        4)
-            echo "安装Speedtest测速面板..."
-            # 从kejilion.sh中提取Speedtest测速面板的安装命令
-            back_to_menu classic_apps
-            ;;
-        5)
-            echo "安装UptimeKuma监控工具..."
-            # 从kejilion.sh中提取UptimeKuma监控工具的安装命令
-            back_to_menu classic_apps
-            ;;
-        6)
-            echo "安装Memos网页备忘录..."
-            # 从kejilion.sh中提取Memos网页备忘录的安装命令
-            back_to_menu classic_apps
-            ;;
-        7)
-            echo "安装searxng聚合搜索站..."
-            # 从kejilion.sh中提取searxng聚合搜索站的安装命令
-            back_to_menu classic_apps
-            ;;
-        8)
-            echo "安装PhotoPrism私有相册系统..."
-            # 从kejilion.sh中提取PhotoPrism私有相册系统的安装命令
-            back_to_menu classic_apps
-            ;;
-        9)
-            echo "安装Sun-Panel导航面板..."
-            # 从kejilion.sh中提取Sun-Panel导航面板的安装命令
-            back_to_menu classic_apps
-            ;;
-        10)
-            echo "安装MyIP工具箱..."
-            # 从kejilion.sh中提取MyIP工具箱的安装命令
-            back_to_menu classic_apps
-            ;;
-        11)
-            echo "安装Pingvin-Share文件分享平台..."
-            # 从kejilion.sh中提取Pingvin-Share文件分享平台的安装命令
-            back_to_menu classic_apps
-            ;;
+        1) classic_cloudreve ;;
+        2) classic_easyimage ;;
+        3) classic_webssh ;;
+        4) classic_speedtest ;;
+        5) classic_uptime_kuma ;;
+        6) classic_memos ;;
+        7) classic_searxng ;;
+        8) classic_photoprism ;;
+        9) classic_sun_panel ;;
+        10) classic_myip ;;
+        11) classic_pingvin_share ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; classic_apps ;;
     esac
@@ -1268,11 +1746,11 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2026.5.25 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2026.6.12 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
-    echo "3. 经典应用【未完成】"
+    echo "3. 经典应用"
     echo "4. 抢鸡工具"
     echo "5. 重装系统"
     echo "6. 开小鸡工具"
