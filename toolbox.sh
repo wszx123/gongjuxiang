@@ -1741,69 +1741,6 @@ vps_security_tools() {
     esac
 }
 
-# LDNMP建站模块
-ldnmp_build_sites() {
-    clear
-    echo "#############################################################"
-    echo -e "${GREEN}=== LDNMP建站 ===${NC}"
-    echo "#############################################################"
-    echo "该模块移植自 kejilion.sh 的 LDNMP 建站功能，包含原菜单 1-38 的完整安装/管理项。"
-    echo
-
-    local script_dir
-    local source_file
-    local temp_file
-
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-    source_file="$script_dir/kejilion.sh"
-
-    if [ ! -f "$source_file" ] && [ -f "./kejilion.sh" ]; then
-        source_file="./kejilion.sh"
-    fi
-
-    temp_file="/tmp/toolbox_ldnmp_kejilion_$$.sh"
-
-    if [ -f "$source_file" ]; then
-        cp "$source_file" "$temp_file"
-    else
-        echo -e "${YELLOW}未在当前目录找到 kejilion.sh，正在从 GitHub 拉取 LDNMP 模块...${NC}"
-        if command -v curl >/dev/null 2>&1; then
-            curl -fsSL "https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh" -o "$temp_file"
-        elif command -v wget >/dev/null 2>&1; then
-            wget -qO "$temp_file" "https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh"
-        else
-            echo -e "${RED}未检测到 curl 或 wget，无法拉取 LDNMP 模块。${NC}"
-            back_to_menu main_menu
-            return
-        fi
-    fi
-
-    if [ ! -s "$temp_file" ]; then
-        echo -e "${RED}LDNMP 模块准备失败，请检查 kejilion.sh 是否存在或网络是否正常。${NC}"
-        back_to_menu main_menu
-        return
-    fi
-
-    # 临时副本只作为 LDNMP 模块运行，避免执行 kejilion.sh 顶层安装别名/写入 k 命令/首次许可等初始化动作。
-    sed -i 's/^permission_granted="false"/permission_granted="true"/' "$temp_file"
-    sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' "$temp_file"
-    sed -i '/^sed -i .*alias k=/d' "$temp_file"
-    sed -i '/^cp -f .*kejilion\.sh/d' "$temp_file"
-    sed -i '/^ln -sf .*\/usr\/bin\/k/d' "$temp_file"
-    sed -i '/^canshu_v6$/d' "$temp_file"
-    sed -i '/^CheckFirstRun_true$/d' "$temp_file"
-    sed -i '/^yinsiyuanquan2$/d' "$temp_file"
-    sed -i '/^CheckFirstRun_false$/d' "$temp_file"
-
-    # 原 LDNMP 菜单 0 会回到 kejilion 主菜单；在 toolbox 中改为退出临时脚本以回到主菜单。
-    sed -i '/^[[:space:]]*0)/,/;;/ { s/^[[:space:]]*kejilion[[:space:]]*$/        exit 0/; }' "$temp_file"
-    chmod +x "$temp_file"
-
-    bash "$temp_file" web
-    rm -f "$temp_file"
-    back_to_menu main_menu
-}
-
 # 主菜单函数
 main_menu() {
     clear
@@ -1822,10 +1759,9 @@ main_menu() {
     echo "10. VPS安全工具"
     echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MySQL 8.0或MariaDB数据库】${NC}"
     echo -e "${GREEN}12. Docker安装最小化Typecho博客和php网站${NC}"
-    echo -e "${GREEN}13. LDNMP建站【含38个安装/管理模块】${NC}"
     echo "0. 退出"
     
-    read -p "请选择功能 (0-13): " choice
+    read -p "请选择功能 (0-12): " choice
     
     case $choice in
         1) common_commands ;;
@@ -1840,7 +1776,6 @@ main_menu() {
         10) vps_security_tools ;;
         11) install_php_caddy ;;
         12) install_typecho ;;
-        13) ldnmp_build_sites ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; main_menu ;;
     esac
