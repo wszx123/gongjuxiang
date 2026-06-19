@@ -32,15 +32,16 @@ common_commands() {
     echo "11. 梭哈脚本"
     echo "12. 查看梭哈"
     echo "13. 一键无脑隧道-修改"
+    echo "14. ARGO 隧道 多协议一键脚本【自用】"
     echo "------------------------------------------------------------"
-    echo "14. 融合怪命令1【综合测试】"
-    echo "15. 融合怪命令2【三网测试】"
-    echo "16. 硬件测试3【综合测试】"
-    echo "17. 硬件测试4【基本信息】"
-    echo "18. 硬件测试5【IP质量】"
-    echo "19. 硬件测试5【网络质量、回程路由】"
-    echo "20. 解锁测试"
-    echo "21. 更新系统"
+    echo "15. 融合怪命令1【综合测试】"
+    echo "16. 融合怪命令2【三网测试】"
+    echo "17. 硬件测试3【综合测试】"
+    echo "18. 硬件测试4【基本信息】"
+    echo "19. 硬件测试5【IP质量】"
+    echo "20. 硬件测试5【网络质量、回程路由】"
+    echo "21. 解锁测试"
+    echo "22. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-16): " choice
@@ -223,41 +224,46 @@ common_commands() {
             main_menu 
             ;;
         14)
+            echo "ARGO 隧道 多协议一键脚本【自用】..."
+            bash <(curl -fsSL https://raw.githubusercontent.com/wszx123/vless-xhttp-reality-self/refs/heads/main/scripts/install.sh)
+            main_menu 
+            ;;
+        15)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
-        15)
+        16)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
-        16)
+        17)
             echo "硬件测试3【综合测试】..."
             bash <(curl -sL https://run.NodeQuality.com)
             main_menu 
             ;;
-        17)
+        18)
             echo "硬件测试4【基本信息】..."
             bash <(curl -Ls https://Check.Place) -H
             main_menu 
             ;;
-        18)
+        19)
             echo "硬件测试5【IP质量】..."
             bash <(curl -Ls https://Check.Place) -I
             main_menu 
             ;;
-        19)
+        20)
             echo "硬件测试5【网络质量、回程路由】..."
             bash <(curl -Ls https://Check.Place) -N
             main_menu 
             ;;
-        20)
+        21)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
-        21)
+        22)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
@@ -526,7 +532,7 @@ docker_tools() {
     esac
 }
 
-# 哪吒面板函数
+# 哪吒面板函数（经典应用）
 nezha_panel() {
     clear
     echo "#############################################################"
@@ -536,7 +542,7 @@ nezha_panel() {
     echo "2. 执行命令"
     echo "3. 清除v1 agent"
     echo "4. 安装unzip"
-    echo "0. 返回主菜单"
+    echo "0. 返回经典应用"
     
     read -p "请选择 (0-4): " subchoice
     
@@ -561,8 +567,91 @@ nezha_panel() {
             apt -y install unzip
             back_to_menu nezha_panel
             ;;
-        0) main_menu ;;
+        0) classic_apps ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; nezha_panel ;;
+    esac
+}
+
+# Komari面板函数（经典应用）
+komari_panel() {
+    clear
+    echo "#############################################################"
+    echo -e "${GREEN}=== Komari面板 ===${NC}"
+    echo "#############################################################"
+    echo "1. 创建数据目录"
+    echo "2. 运行Docker容器"
+    echo "3. 查看账号和密码"
+    echo "4. 卸载Komari Agent（方法1）"
+    echo "5. 一键卸载Komari Agent（方法2）"
+    echo "0. 返回经典应用"
+
+    read -p "请选择 (0-5): " subchoice
+
+    case $subchoice in
+        1)
+            echo "创建Komari数据目录..."
+            mkdir -p /root/komari/data
+            echo -e "${GREEN}目录已创建：/root/komari/data${NC}"
+            back_to_menu komari_panel
+            ;;
+        2)
+            echo "运行Komari Docker容器..."
+            classic_ensure_docker || { back_to_menu komari_panel; return; }
+            mkdir -p /root/komari/data
+            if docker ps -a --format '{{.Names}}' 2>/dev/null | grep -Fxq "komari"; then
+                echo -e "${YELLOW}Komari容器已经存在，请先处理现有容器。${NC}"
+            else
+                docker run -d \
+                    --name komari \
+                    --restart=always \
+                    -p 25774:25774 \
+                    -v /root/komari/data:/app/data \
+                    -e ADMIN_USERNAME="9527a" \
+                    -e ADMIN_PASSWORD="9527abc" \
+                    ghcr.io/komari-monitor/komari:latest
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}Komari面板已启动，访问端口：25774${NC}"
+                else
+                    echo -e "${RED}Komari容器启动失败，请检查Docker和网络。${NC}"
+                fi
+            fi
+            back_to_menu komari_panel
+            ;;
+        3)
+            echo "查看Komari账号和密码..."
+            docker logs komari
+            back_to_menu komari_panel
+            ;;
+        4)
+            read -p "确认卸载Komari Agent（方法1）？(y/N): " confirm
+            case "$confirm" in
+                y|Y)
+                    systemctl stop komari-agent
+                    rm -r /opt/komari
+                    rm /etc/systemd/system/komari-agent.service
+                    systemctl daemon-reload
+                    echo -e "${GREEN}Komari Agent卸载命令已执行${NC}"
+                    ;;
+                *) echo "已取消卸载" ;;
+            esac
+            back_to_menu komari_panel
+            ;;
+        5)
+            read -p "确认一键卸载Komari Agent？(y/N): " confirm
+            case "$confirm" in
+                y|Y)
+                    sudo systemctl stop komari-agent && sudo systemctl disable komari-agent
+                    sudo rm -f /etc/systemd/system/komari-agent.service
+                    sudo systemctl daemon-reload
+                    sudo rm -rf /opt/komari/agent /var/log/komari
+                    echo -e "${GREEN}Komari Agent一键卸载命令已执行${NC}"
+                    ;;
+                *) echo "已取消卸载" ;;
+            esac
+            back_to_menu komari_panel
+            ;;
+        0) classic_apps ;;
+        *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; komari_panel ;;
     esac
 }
 
@@ -1605,9 +1694,11 @@ classic_apps() {
     echo "9. Sun-Panel导航面板"
     echo "10. MyIP工具箱"
     echo "11. Pingvin-Share文件分享平台"
+    echo "12. 哪吒面板"
+    echo "13. Komari面板"
     echo "0. 返回主菜单"
     
-    read -p "请选择功能 (0-11): " choice
+    read -p "请选择功能 (0-13): " choice
     
     case $choice in
         1) classic_cloudreve ;;
@@ -1621,6 +1712,8 @@ classic_apps() {
         9) classic_sun_panel ;;
         10) classic_myip ;;
         11) classic_pingvin_share ;;
+        12) nezha_panel ;;
+        13) komari_panel ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; classic_apps ;;
     esac
@@ -1745,7 +1838,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2026.6.12 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2026.6.19 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
@@ -1754,14 +1847,13 @@ main_menu() {
     echo "5. 重装系统"
     echo "6. 开小鸡工具"
     echo "7. Docker 工具"
-    echo "8. 哪吒面板"
-    echo "9. Caddy2 工具"
-    echo "10. VPS安全工具"
-    echo -e "${YELLOW}11. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MySQL 8.0或MariaDB数据库】${NC}"
-    echo -e "${GREEN}12. Docker安装最小化Typecho博客和php网站${NC}"
+    echo "8. Caddy2 工具"
+    echo "9. VPS安全工具"
+    echo -e "${YELLOW}10. 在 Debian 11/12 上安装 PHP 8.2 + Caddy【MySQL 8.0或MariaDB数据库】${NC}"
+    echo -e "${GREEN}11. Docker安装最小化Typecho博客和php网站${NC}"
     echo "0. 退出"
     
-    read -p "请选择功能 (0-12): " choice
+    read -p "请选择功能 (0-11): " choice
     
     case $choice in
         1) common_commands ;;
@@ -1771,11 +1863,10 @@ main_menu() {
         5) system_reinstall ;;
         6) vps_create ;;
         7) docker_tools ;;
-        8) nezha_panel ;;
-        9) caddy_tools ;;
-        10) vps_security_tools ;;
-        11) install_php_caddy ;;
-        12) install_typecho ;;
+        8) caddy_tools ;;
+        9) vps_security_tools ;;
+        10) install_php_caddy ;;
+        11) install_typecho ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; main_menu ;;
     esac
