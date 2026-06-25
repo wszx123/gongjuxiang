@@ -31,8 +31,8 @@ common_commands() {
     echo "10. 删除argox脚本"
     echo "11. 梭哈脚本"
     echo "12. 查看梭哈"
-    echo "13. 一键无脑隧道-修改"
-    echo "14. ARGO 隧道 多协议一键脚本【自用】"
+    echo "13. 一键无脑隧道-修改【推荐】"
+    echo "14. ARGO 隧道 多协议一键脚本【自用，Db 12 以上】"
     echo "------------------------------------------------------------"
     echo "15. 融合怪命令1【综合测试】"
     echo "16. 融合怪命令2【三网测试】"
@@ -219,12 +219,12 @@ common_commands() {
             main_menu 
             ;;
         13)
-            echo "一键无脑隧道-修改..."
+            echo "一键无脑隧道-修改【推荐】..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/xray_2go.sh)
             main_menu 
             ;;
         14)
-            echo "ARGO 隧道 多协议一键脚本【自用】..."
+            echo "ARGO 隧道 多协议一键脚本【自用, Db 12以上】..."
             bash <(curl -fsSL https://raw.githubusercontent.com/wszx123/vless-xhttp-reality-self/refs/heads/main/scripts/install.sh)
             main_menu 
             ;;
