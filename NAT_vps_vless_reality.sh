@@ -223,6 +223,9 @@ cat > /usr/local/bin/vless <<EOF4
 
 echo ""
 echo "========== VLESS REALITY 信息 =========="
+echo "VLESS链接:"
+echo "vless://$UUID@$IP:$node_external?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$SNI&fp=chrome&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp#ws01%20vless"
+
 echo "IP:" "$IP"
 
 echo "端口:" "$node_external"
@@ -234,10 +237,6 @@ echo "Public Key:" "$PUBLIC_KEY"
 echo "Short ID:" "$SHORT_ID"
 
 echo "SNI:" "$SNI"
-
-echo "VLESS链接:"
-
-echo "vless://$UUID@$IP:$node_external?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$SNI&fp=chrome&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp#ws01%20vless"
 
 echo ""
 EOF4
