@@ -13,6 +13,40 @@ back_to_menu() {
     $1
 }
 
+# NAT 小鸡安装 vless_reality（安装完成后强制回显节点信息与 VLESS 链接）
+nat_vless_reality() {
+    local url="https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/NAT_vps_vless_reality.sh"
+    local script="/tmp/NAT_vps_vless_reality.sh"
+    local saved="/tmp/vless_reality.txt"
+
+    rm -f "$script"
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$url" -o "$script"
+    else
+        wget -qO "$script" "$url"
+    fi
+
+    if [ ! -s "$script" ]; then
+        echo -e "${RED}安装脚本下载失败，请检查网络后重试。${NC}"
+        rm -f "$script"
+        return 1
+    fi
+
+    sh "$script"
+    rm -f "$script"
+
+    echo
+    if [ -f /usr/local/bin/vless ]; then
+        [ -w /root ] && saved="/root/vless_reality.txt"
+        echo -e "${GREEN}=== 安装结果（VLESS REALITY 节点信息）===${NC}"
+        sh /usr/local/bin/vless | tee "$saved"
+        chmod 600 "$saved" 2>/dev/null
+        echo -e "${YELLOW}已保存到 ${saved}；以后输入 vless 可再次查看，vless-uninstall 可卸载。${NC}"
+    else
+        echo -e "${RED}未检测到 /usr/local/bin/vless，安装可能未完成，请查看上方安装日志。${NC}"
+    fi
+}
+
 # 常用命令函数
 common_commands() {
     clear
@@ -231,8 +265,8 @@ common_commands() {
             ;;
         15)
             echo "NAT_vps_vless_reality【NAT小鸡安装vless_reality】..."
-            bash <(curl -fsSL https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/NAT_vps_vless_reality.sh)
-            main_menu 
+            nat_vless_reality
+            back_to_menu main_menu
             ;;
 
         16)
