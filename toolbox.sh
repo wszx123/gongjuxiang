@@ -106,7 +106,7 @@ common_commands() {
             echo "| 系统时间      | $(date) |"
             echo "| 运行时长      | $(uptime -p) |"
             echo "----------------------------------------"
-            main_menu
+            back_to_menu common_commands
             ;;
         2)
             while true; do
@@ -206,114 +206,117 @@ common_commands() {
         3)
             echo "执行一键升级..."
             apt update && apt install -y curl wget unzip zip
-            main_menu 
+            back_to_menu common_commands
             ;;
         4)
             echo "执行X-UI-F大安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh)
-            main_menu 
+            back_to_menu common_commands
             ;;
         5)
             echo "执行X-UI-F大独立版安装..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/x-ui-FranzKafkaYu/master/install.sh) 0.3.4.4
-            main_menu 
+            back_to_menu common_commands
             ;;
         6)
             echo "执行F大warp添加IPV4..."
             wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh && bash menu.sh [option] [lisence/url/token]
-            main_menu 
+            back_to_menu common_commands
             ;;
         7)
             echo "安装hy2..."
             wget -N --no-check-certificate https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/hy2/hysteria.sh && bash hysteria.sh
-            main_menu 
+            back_to_menu common_commands
             ;;
         8)
             echo "安装新版3X-UI..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/3x-ui/install-3x-ui-2.sh)
-            main_menu 
+            back_to_menu common_commands
             ;;
         9)
             echo "安装F大argox隧道..."
             bash <(wget -qO- https://raw.githubusercontent.com/fscarmen/argox/main/argox.sh)
-            main_menu 
+            back_to_menu common_commands
             ;;
         10)
             echo "删除argox脚本..."
             argox -u
-            main_menu 
+            back_to_menu common_commands
             ;;
         11)
             echo "执行梭哈脚本..."
             curl https://raw.githubusercontent.com/wszx123/ArgoX/main/suoha.sh -o suoha.sh && bash suoha.sh
-            main_menu 
+            back_to_menu common_commands
             ;;
         12)
             echo "查看梭哈..."
-            cat v2ray.txt
-            main_menu 
+            if [ -f v2ray.txt ]; then
+                cat v2ray.txt
+            else
+                echo -e "${RED}当前目录下没有 v2ray.txt，请先执行梭哈脚本。${NC}"
+            fi
+            back_to_menu common_commands
             ;;
         13)
             echo "一键无脑隧道-修改【推荐】..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/xray_2go.sh)
-            main_menu 
+            back_to_menu common_commands
             ;;
         14)
             echo "ARGO 隧道 多协议一键脚本【自用, Db 12以上】..."
             bash <(curl -fsSL https://raw.githubusercontent.com/wszx123/vless-xhttp-reality-self/refs/heads/main/scripts/install.sh)
-            main_menu 
+            back_to_menu common_commands
             ;;
         15)
             echo "NAT_vps_vless_reality【NAT小鸡安装vless_reality】..."
             nat_vless_reality
-            back_to_menu main_menu
+            back_to_menu common_commands
             ;;
 
         16)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
-            main_menu 
+            back_to_menu common_commands
             ;;
         17)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
-            main_menu 
+            back_to_menu common_commands
             ;;
         18)
             echo "硬件测试3【综合测试】..."
             bash <(curl -sL https://run.NodeQuality.com)
-            main_menu 
+            back_to_menu common_commands
             ;;
         19)
             echo "硬件测试4【基本信息】..."
             bash <(curl -Ls https://Check.Place) -H
-            main_menu 
+            back_to_menu common_commands
             ;;
         20)
             echo "硬件测试5【IP质量】..."
             bash <(curl -Ls https://Check.Place) -I
-            main_menu 
+            back_to_menu common_commands
             ;;
         21)
             echo "硬件测试5【网络质量、回程路由】..."
             bash <(curl -Ls https://Check.Place) -N
-            main_menu 
+            back_to_menu common_commands
             ;;
         22)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
-            main_menu 
+            back_to_menu common_commands
             ;;
         23)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
-if [[ "$confirm" == "y" ]]; then
-    apt update && apt full-upgrade -y
-else
-    echo "取消更新"
-fi
-
-            main_menu
+            if [[ "$confirm" == "y" ]]; then
+                apt update && apt full-upgrade -y
+            else
+                echo "取消更新"
+            fi
+            back_to_menu common_commands
             ;;
         0) main_menu ;;
         *) echo -e "${RED}无效选择${NC}" ; sleep 2 ; common_commands ;;
