@@ -33,15 +33,16 @@ common_commands() {
     echo "12. 查看梭哈"
     echo "13. 一键无脑隧道-修改【推荐】"
     echo "14. ARGO 隧道 多协议一键脚本【自用，Db 12 以上】"
+    echo "15. NAT_vps_vless_reality【NAT小鸡安装vless_reality】"
     echo "------------------------------------------------------------"
-    echo "15. 融合怪命令1【综合测试】"
-    echo "16. 融合怪命令2【三网测试】"
-    echo "17. 硬件测试3【综合测试】"
-    echo "18. 硬件测试4【基本信息】"
-    echo "19. 硬件测试5【IP质量】"
-    echo "20. 硬件测试5【网络质量、回程路由】"
-    echo "21. 解锁测试"
-    echo "22. 更新系统"
+    echo "16. 融合怪命令1【综合测试】"
+    echo "17. 融合怪命令2【三网测试】"
+    echo "18. 硬件测试3【综合测试】"
+    echo "19. 硬件测试4【基本信息】"
+    echo "20. 硬件测试5【IP质量】"
+    echo "21. 硬件测试5【网络质量、回程路由】"
+    echo "22. 解锁测试"
+    echo "23. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-16): " choice
@@ -229,41 +230,47 @@ common_commands() {
             main_menu 
             ;;
         15)
+            echo "NAT_vps_vless_reality【NAT小鸡安装vless_reality】..."
+            bash <(curl -fsSL https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/NAT_vps_vless_reality.sh)
+            main_menu 
+            ;;
+
+        16)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             main_menu 
             ;;
-        16)
+        17)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             main_menu 
             ;;
-        17)
+        18)
             echo "硬件测试3【综合测试】..."
             bash <(curl -sL https://run.NodeQuality.com)
             main_menu 
             ;;
-        18)
+        19)
             echo "硬件测试4【基本信息】..."
             bash <(curl -Ls https://Check.Place) -H
             main_menu 
             ;;
-        19)
+        20)
             echo "硬件测试5【IP质量】..."
             bash <(curl -Ls https://Check.Place) -I
             main_menu 
             ;;
-        20)
+        21)
             echo "硬件测试5【网络质量、回程路由】..."
             bash <(curl -Ls https://Check.Place) -N
             main_menu 
             ;;
-        21)
+        22)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             main_menu 
             ;;
-        22)
+        23)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
 if [[ "$confirm" == "y" ]]; then
