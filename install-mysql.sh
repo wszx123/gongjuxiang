@@ -7,8 +7,34 @@ MYSQL_USER="wszx123"
 MYSQL_PASS="password@123@DDD"
 # ===========================================
 
-echo ">>> 更新系统..."
-apt update
+
+echo ">>> 更新软件包列表..."
+
+if ! apt update; then
+    echo ">>> APT 更新失败，检查是否为 Caddy 源返回 402..."
+
+    if grep -Rqs 'dl.cloudsmith.io/public/caddy/stable' \
+        /etc/apt/sources.list.d/; then
+
+        echo ">>> 暂时禁用 Caddy 软件源..."
+
+        for f in /etc/apt/sources.list.d/*; do
+            [ -f "$f" ] || continue
+
+            if grep -q 'dl.cloudsmith.io/public/caddy/stable' "$f"; then
+                mv "$f" "${f}.disabled"
+                echo "已禁用: $f"
+            fi
+        done
+
+        echo ">>> 重新更新软件包列表..."
+        apt update
+    else
+        echo "错误：APT 更新失败，未找到对应的 Caddy 软件源。"
+        exit 1
+    fi
+fi
+
 
 echo ">>> 安装 MariaDB（Debian 12 官方 default-mysql-server）..."
 DEBIAN_FRONTEND=noninteractive apt install -y default-mysql-server
