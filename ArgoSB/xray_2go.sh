@@ -152,7 +152,7 @@ get_realip() {
 # 下载并安装 xray,cloudflared
 install_xray() {
     clear
-    purple "正在安装Xray-2go中，请稍等..."
+    purple "正在安装${1:-Xray-2go【默认四协议】}中，请稍等..."
     ARCH_RAW=$(uname -m)
     case "${ARCH_RAW}" in
         'x86_64') ARCH='amd64'; ARCH_ARG='64' ;;
@@ -243,6 +243,196 @@ cat > "${config_dir}" << EOF
     ]
 }
 EOF
+}
+
+write_xray_systemd_service() {
+    cat > /etc/systemd/system/xray.service << EOF
+[Unit]
+Description=Xray Service
+Documentation=https://github.com/XTLS/Xray-core
+After=network.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+NoNewPrivileges=yes
+ExecStart=$work_dir/xray -c $config_dir
+Restart=on-failure
+RestartPreventExitStatus=23
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable xray
+    systemctl restart xray
+}
+
+write_xray_openrc_service() {
+    cat > /etc/init.d/xray << 'EOF'
+#!/sbin/openrc-run
+
+description="Xray service"
+command="/etc/xray/xray"
+command_args="-c /etc/xray/config.json"
+command_background=true
+pidfile="/var/run/xray.pid"
+EOF
+
+    chmod +x /etc/init.d/xray
+    rc-update add xray default
+    rc-service xray restart
+}
+
+start_single_xray_service() {
+    if [ -x "$(command -v systemctl)" ]; then
+        write_xray_systemd_service
+    elif [ -x "$(command -v rc-update)" ]; then
+        write_xray_openrc_service
+    else
+        red "Unsupported init system"
+        return 1
+    fi
+}
+
+filter_single_node_config() {
+    local node_mode=$1
+
+    case "${node_mode}" in
+        grpc-reality)
+            jq '.inbounds = [.inbounds[] | select(.streamSettings.network == "grpc" and .streamSettings.security == "reality")]' "$config_dir" > "${config_dir}.tmp"
+            ;;
+        xhttp-reality)
+            jq '.inbounds = [.inbounds[] | select(.streamSettings.network == "xhttp" and .streamSettings.security == "reality")]' "$config_dir" > "${config_dir}.tmp"
+            ;;
+        reality)
+            jq '.inbounds = [.inbounds[] | select(.streamSettings.network == "grpc" and .streamSettings.security == "reality") | .streamSettings.network = "tcp" | .settings.clients[0].flow = "xtls-rprx-vision" | .streamSettings.realitySettings.target = .streamSettings.realitySettings.dest | del(.streamSettings.grpcSettings)]' "$config_dir" > "${config_dir}.tmp"
+            ;;
+        *)
+            red "未知节点类型：${node_mode}"
+            return 1
+            ;;
+    esac
+
+    if [ $? -eq 0 ]; then
+        mv "${config_dir}.tmp" "$config_dir"
+        echo "${node_mode}" > "${work_dir}/install-mode"
+    else
+        rm -f "${config_dir}.tmp"
+        red "节点配置生成失败"
+        return 1
+    fi
+}
+
+get_isp_name() {
+    curl -sm 3 -H "User-Agent: Mozilla/5.0" "https://api.ip.sb/geoip" | tr -d '\n' | awk -F\" '{c="";i="";for(x=1;x<=NF;x++){if($x=="country_code")c=$(x+2);if($x=="isp")i=$(x+2)};if(c&&i)print c"-"i}' | sed 's/ /_/g' || curl -sm 3 -H "User-Agent: Mozilla/5.0" "https://ipapi.co/json" | tr -d '\n' | awk -F\" '{c="";o="";for(x=1;x<=NF;x++){if($x=="country_code")c=$(x+2);if($x=="org")o=$(x+2)};if(c&&o)print c"-"o}' | sed 's/ /_/g' || echo "vps"
+}
+
+show_single_node_info() {
+    local node_mode=$1
+    local node_link
+    IP=$(get_realip)
+    isp=$(get_isp_name)
+
+    case "${node_mode}" in
+        grpc-reality)
+            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#${isp}"
+            ;;
+        xhttp-reality)
+            node_link="vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=${public_key}&allowInsecure=0&type=xhttp&mode=auto#${isp}"
+            ;;
+        reality)
+            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=tcp&flow=xtls-rprx-vision#${isp}"
+            ;;
+    esac
+
+    printf '%s\n' "$node_link" > "$client_dir"
+    base64 -w0 "$client_dir" > "${work_dir}/sub.txt"
+    green "\n${node_mode}节点安装完成\n"
+    purple "$node_link\n"
+    yellow "该安装模式未启用订阅服务，请直接复制以上节点链接\n"
+}
+
+install_single_xray_node() {
+    local node_mode=$1
+    clear
+    manage_packages install jq unzip iptables openssl coreutils lsof
+    install_xray "${node_mode}节点"
+    filter_single_node_config "$node_mode" || return 1
+    start_single_xray_service || return 1
+    sleep 2
+    show_single_node_info "$node_mode"
+    create_shortcut
+}
+
+filter_argo_node_config() {
+    jq '.inbounds = .inbounds[:4]' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir"
+    if [ $? -ne 0 ]; then
+        rm -f "${config_dir}.tmp"
+        red "Argo节点配置生成失败"
+        return 1
+    fi
+    echo "argo" > "${work_dir}/install-mode"
+}
+
+get_argo_domain_only() {
+    local argo_domain
+    for i in {1..10}; do
+        if [ -f "${work_dir}/argo.log" ]; then
+            argo_domain=$(sed -n 's|.*https://\([^/]*trycloudflare\.com\).*|\1|p' "${work_dir}/argo.log")
+        fi
+        [ -n "$argo_domain" ] && break
+        sleep 2
+    done
+    echo "$argo_domain"
+}
+
+show_argo_node_info() {
+    local argo_domain=$1
+    IP=$(get_realip)
+    isp=$(get_isp_name)
+
+    cat > "$client_dir" <<EOF
+vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argo_domain}&fp=chrome&type=ws&host=${argo_domain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}
+
+vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argo_domain}\", \"path\": \"/vless-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argo_domain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)
+EOF
+
+    base64 -w0 "$client_dir" > "${work_dir}/sub.txt"
+    green "\nArgoDomain：${purple}${argo_domain}${re}\n"
+    green "Argo隧道节点安装完成\n"
+    while IFS= read -r line; do echo -e "${purple}$line"; done < "$client_dir"
+    yellow "\n该安装模式未启用订阅服务，请直接复制以上节点链接\n"
+}
+
+install_argo_node() {
+    clear
+    manage_packages install jq unzip iptables openssl coreutils lsof
+    install_xray "Argo隧道节点"
+    filter_argo_node_config || return 1
+    rm -f "${work_dir}/argo.log"
+
+    if [ -x "$(command -v systemctl)" ]; then
+        main_systemd_services
+    elif [ -x "$(command -v rc-update)" ]; then
+        alpine_openrc_services
+        change_hosts
+        rc-service xray restart
+        rc-service tunnel restart
+    else
+        red "Unsupported init system"
+        return 1
+    fi
+
+    sleep 3
+    argodomain=$(get_argo_domain_only)
+    if [ -z "$argodomain" ]; then
+        red "未获取到Argo临时域名，可稍后通过Argo隧道管理重新获取\n"
+        return 1
+    fi
+    show_argo_node_info "$argodomain"
+    create_shortcut
 }
 # debian/ubuntu/centos 守护进程
 main_systemd_services() {
@@ -702,6 +892,121 @@ change_hosts() {
     sed -i '2s/.*/::1         localhost/' /etc/hosts
 }
 
+restart_installed_xray() {
+    if [ -x "$(command -v systemctl)" ]; then
+        systemctl daemon-reload
+        systemctl restart xray
+    elif [ -x "$(command -v rc-update)" ]; then
+        rc-service xray restart
+    fi
+}
+
+refresh_standalone_subscription() {
+    base64 -w0 "$client_dir" > "${work_dir}/sub.txt"
+    while IFS= read -r line; do yellow "$line"; done < "$client_dir"
+}
+
+update_standalone_uuid_links() {
+    local new_uuid=$1
+    local content vmess_urls vmess_url encoded_vmess decoded_vmess updated_vmess encoded_updated_vmess new_vmess_url
+
+    sed -i -E "s#^(vless://)[^@]+@#\1${new_uuid}@#" "$client_dir"
+    if grep -q '^vmess://' "$client_dir"; then
+        content=$(cat "$client_dir")
+        vmess_urls=$(grep -o 'vmess://[^[:space:]]*' "$client_dir")
+        for vmess_url in $vmess_urls; do
+            encoded_vmess="${vmess_url#vmess://}"
+            decoded_vmess=$(echo "$encoded_vmess" | base64 -d 2>/dev/null)
+            updated_vmess=$(echo "$decoded_vmess" | jq --arg new_uuid "$new_uuid" '.id = $new_uuid')
+            encoded_updated_vmess=$(echo "$updated_vmess" | base64 | tr -d '\n')
+            new_vmess_url="vmess://${encoded_updated_vmess}"
+            content=$(echo "$content" | sed "s|$vmess_url|$new_vmess_url|")
+        done
+        echo "$content" > "$client_dir"
+    fi
+}
+
+change_single_node_config() {
+    local node_mode new_uuid new_port new_sni
+    node_mode=$(cat "${work_dir}/install-mode" 2>/dev/null)
+
+    clear
+    echo ""
+    green "1. 修改UUID"
+    skyblue "------------"
+    if [ "$node_mode" != "argo" ]; then
+        green "2. 修改节点端口"
+        skyblue "------------"
+        green "3. 修改Reality伪装域名"
+        skyblue "------------"
+    fi
+    purple "${red}0. 返回主菜单"
+    skyblue "------------"
+    reading "请输入选择: " choice
+
+    case "${choice}" in
+        1)
+            reading "\n请输入新的UUID: " new_uuid
+            [ -z "$new_uuid" ] && new_uuid=$(cat /proc/sys/kernel/random/uuid)
+            until [[ "$new_uuid" =~ ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$ ]]; do
+                red "UUID格式不正确"
+                reading "请重新输入UUID: " new_uuid
+            done
+            jq --arg new_uuid "$new_uuid" '.inbounds[].settings.clients[].id = $new_uuid' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+            update_standalone_uuid_links "$new_uuid"
+            restart_installed_xray
+            refresh_standalone_subscription
+            green "\nUUID已修改为：${purple}${new_uuid}${re}\n"
+            ;;
+        2)
+            if [ "$node_mode" == "argo" ]; then
+                yellow "\nArgo安装模式使用Cloudflare端口，请在Argo隧道管理中处理域名\n"
+            else
+                reading "\n请输入新的节点端口 (回车使用随机端口): " new_port
+                [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
+                while true; do
+                    if [[ ! "$new_port" =~ ^[0-9]+$ ]] || [ "$new_port" -lt 1 ] || [ "$new_port" -gt 65535 ]; then
+                        red "端口必须是1-65535"
+                        reading "请重新输入节点端口: " new_port
+                    elif [ -n "$(lsof -iTCP:"$new_port" -sTCP:LISTEN 2>/dev/null)" ]; then
+                        red "${new_port}端口已被占用，请更换端口"
+                        reading "请重新输入节点端口: " new_port
+                    else
+                        break
+                    fi
+                done
+                jq --argjson new_port "$new_port" '.inbounds[0].port = $new_port' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+                sed -i -E "s#^(vless://[^@]+@.*):[0-9]+([?].*)$#\1:$new_port\2#" "$client_dir"
+                restart_installed_xray
+                refresh_standalone_subscription
+                green "\n节点端口已修改为：${purple}$new_port${re}\n"
+            fi
+            ;;
+        3)
+            if [ "$node_mode" == "argo" ]; then
+                yellow "\nArgo安装模式请使用Argo隧道管理修改域名\n"
+            else
+                green "\n1. bgk.jp\n\n2. www.joom.com\n\n3. www.stengg.com\n\n4. www.nazhumi.com\n"
+                reading "\n请输入新的Reality伪装域名(可自定义输入,回车使用默认1): " new_sni
+                case "$new_sni" in
+                    ""|1) new_sni="bgk.jp" ;;
+                    2) new_sni="www.joom.com" ;;
+                    3) new_sni="www.stengg.com" ;;
+                    4) new_sni="www.nazhumi.com" ;;
+                esac
+                jq --arg new_sni "$new_sni" '.inbounds[0].streamSettings.realitySettings.dest = ($new_sni + ":443") | .inbounds[0].streamSettings.realitySettings.target = ($new_sni + ":443") | .inbounds[0].streamSettings.realitySettings.serverNames = [$new_sni]' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+                sed -i -E "s#([?&])sni=[^&]*#\1sni=$new_sni#" "$client_dir"
+                grep -q 'authority=' "$client_dir" && sed -i -E "s#([?&])authority=[^&]*#\1authority=$new_sni#" "$client_dir"
+                restart_installed_xray
+                refresh_standalone_subscription
+                green "\nReality SNI已修改为：${purple}$new_sni${re}\n"
+            fi
+            ;;
+        0) return 0 ;;
+        *) red "无效的选项！" ;;
+    esac
+}
+
 # 变更配置
 change_config() {
 clear
@@ -1043,9 +1348,13 @@ check_nodes() {
 if [ ${check_xray} -eq 0 ]; then
     while IFS= read -r line; do purple "${purple}$line"; done < ${work_dir}/url.txt
     server_ip=$(get_realip)
-    sub_port=$(sed -n 's/.*:\([0-9]\+\).*/\1/p' /etc/caddy/Caddyfile)
-    lujing=$(sed -n 's/.*handle \/\([a-zA-Z0-9]\+\).*/\1/p' /etc/caddy/Caddyfile)
-    green "\n\n节点订阅链接：http://$server_ip:$sub_port/$lujing\n"
+    if [ -f /etc/caddy/Caddyfile ]; then
+        sub_port=$(sed -n 's/.*:\([0-9]\+\).*/\1/p' /etc/caddy/Caddyfile)
+        lujing=$(sed -n 's/.*handle \/\([a-zA-Z0-9]\+\).*/\1/p' /etc/caddy/Caddyfile)
+        green "\n\n节点订阅链接：http://$server_ip:$sub_port/$lujing\n"
+    else
+        green "\n\n当前安装模式未启用节点订阅\n"
+    fi
 else 
     yellow "Xray-2go 尚未安装或未运行,请先安装或启动Xray-2go"
     sleep 1
@@ -1068,23 +1377,27 @@ while true; do
    clear
    echo ""
    green "===== Xray-2go一键安装脚本 ====="
-   purple "-------- ws01 v20260602 --------\n"
+   purple "-------- ws01 v20261101 --------\n"
    red " Xray 状态: ${check_xray_status}"
    red " Argo 状态: ${check_argo_status}"   
    red "Caddy 状态: ${check_caddy_status}"
    echo "=============================="
-   green "1. 安装Xray-2go"
-   purple "2. 卸载Xray-2go"
-   green "3. Xray-2go管理"
-   green "4. Argo隧道管理"
-   green  "5. 查看节点信息"
-   green  "6. 修改节点配置"
-   green  "7. 管理节点订阅"
-   red "8. ssh综合工具箱"
-   red "9. 安装singbox四合一"
+   green "1. 安装Xray-2go【默认四协议】"
+   green "2. 安装grpc-reality节点"
+   green "3. 安装xhttp-reality节点"
+   green "4. 安装reality节点"
+   green "5. 安装Argo隧道节点"
+   purple "6. 卸载Xray-2go"
+   green "7. Xray-2go管理"
+   green "8. Argo隧道管理"
+   green "9. 查看节点信息"
+   green "10. 修改节点配置"
+   green "11. 管理节点订阅"
+   red "12. ssh综合工具箱"
+   red "13. 安装singbox四合一"
    echo  "=============================="
    purple "0. 退出脚本"
-   reading "请输入选择(0-9) [默认1]: " choice
+   reading "请输入选择(0-13) [默认1]: " choice
    choice=${choice:-1}
    echo ""
    case "${choice}" in
@@ -1095,6 +1408,7 @@ while true; do
                 install_caddy
                 manage_packages install jq unzip iptables openssl coreutils lsof
                 install_xray
+                echo "default" > "${work_dir}/install-mode"
 
                 if [ -x "$(command -v systemctl)" ]; then
                     main_systemd_services
@@ -1114,16 +1428,62 @@ while true; do
                 create_shortcut
             fi
            ;;
-        2) uninstall_xray ;;
-        3) manage_xray ;;
-        4) manage_argo ;;
-        5) check_nodes ;;
-        6) change_config ;;
-        7) disable_open_sub ;;
-        8) clear && curl -fsSL https://raw.githubusercontent.com/eooce/ssh_tool/main/ssh_tool.sh -o ssh_tool.sh && chmod +x ssh_tool.sh && ./ssh_tool.sh ;;           
-        9) clear && bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sing-box.sh) ;;
+        2)
+            if [ -f "$config_dir" ]; then
+                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
+            else
+                install_single_xray_node "grpc-reality"
+            fi
+            ;;
+        3)
+            if [ -f "$config_dir" ]; then
+                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
+            else
+                install_single_xray_node "xhttp-reality"
+            fi
+            ;;
+        4)
+            if [ -f "$config_dir" ]; then
+                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
+            else
+                install_single_xray_node "reality"
+            fi
+            ;;
+        5)
+            if [ -f "$config_dir" ]; then
+                yellow "Xray-2go 已经安装，请先卸载后再安装Argo隧道节点"
+            else
+                install_argo_node
+            fi
+            ;;
+        6) uninstall_xray ;;
+        7) manage_xray ;;
+        8)
+            if [ -f "${work_dir}/install-mode" ] && grep -qE '^(grpc-reality|xhttp-reality|reality)$' "${work_dir}/install-mode"; then
+                yellow "当前安装模式未包含Argo隧道"
+            else
+                manage_argo
+            fi
+            ;;
+        9) check_nodes ;;
+        10)
+            if [ -f "${work_dir}/install-mode" ] && [ "$(cat "${work_dir}/install-mode" 2>/dev/null)" != "default" ]; then
+                change_single_node_config
+            else
+                change_config
+            fi
+            ;;
+        11)
+            if [ -f "${work_dir}/install-mode" ] && [ "$(cat "${work_dir}/install-mode" 2>/dev/null)" != "default" ]; then
+                yellow "当前安装模式未启用节点订阅"
+            else
+                disable_open_sub
+            fi
+            ;;
+        12) clear && curl -fsSL https://raw.githubusercontent.com/eooce/ssh_tool/main/ssh_tool.sh -o ssh_tool.sh && chmod +x ssh_tool.sh && ./ssh_tool.sh ;;           
+        13) clear && bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sing-box.sh) ;;
         0) exit 0 ;;
-        *) red "无效的选项，请输入 0 到 9" ;; 
+        *) red "无效的选项，请输入 0 到 13" ;; 
    esac
    read -n 1 -s -r -p $'\033[1;91m按任意键继续...\033[0m'
 done
