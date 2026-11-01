@@ -337,13 +337,13 @@ show_single_node_info() {
 
     case "${node_mode}" in
         grpc-reality)
-            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#${isp}"
+            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=grpc&serviceName=grpc&mode=gun#${isp}-ws01"
             ;;
         xhttp-reality)
-            node_link="vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=${public_key}&allowInsecure=0&type=xhttp&mode=auto#${isp}"
+            node_link="vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=${public_key}&allowInsecure=0&type=xhttp&mode=auto#${isp}-ws01"
             ;;
         reality)
-            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=tcp&flow=xtls-rprx-vision#${isp}"
+            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=tcp&flow=xtls-rprx-vision#${isp}-ws01"
             ;;
     esac
 
@@ -367,7 +367,24 @@ install_single_xray_node() {
 }
 
 filter_argo_node_config() {
-    jq '.inbounds = .inbounds[:4]' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir"
+    local argo_mode=${1:-both}
+
+    case "${argo_mode}" in
+        vless)
+            jq '.inbounds = [.inbounds[0], .inbounds[1], .inbounds[2]] | .inbounds[0].settings.fallbacks = [.inbounds[0].settings.fallbacks[] | select(.dest == 3001 or .dest == 3002)]' "$config_dir" > "${config_dir}.tmp"
+            ;;
+        vmess)
+            jq '.inbounds = [.inbounds[0], .inbounds[1], .inbounds[3]] | .inbounds[0].settings.fallbacks = [.inbounds[0].settings.fallbacks[] | select(.dest == 3001 or .dest == 3003)]' "$config_dir" > "${config_dir}.tmp"
+            ;;
+        both)
+            jq '.inbounds = .inbounds[:4]' "$config_dir" > "${config_dir}.tmp"
+            ;;
+        *)
+            red "未知Argo节点类型：${argo_mode}"
+            return 1
+            ;;
+    esac
+
     if [ $? -ne 0 ]; then
         rm -f "${config_dir}.tmp"
         red "Argo节点配置生成失败"
@@ -390,27 +407,56 @@ get_argo_domain_only() {
 
 show_argo_node_info() {
     local argo_domain=$1
+    local argo_mode=${2:-both}
+    local vless_link vmess_link
     IP=$(get_realip)
     isp=$(get_isp_name)
 
-    cat > "$client_dir" <<EOF
-vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argo_domain}&fp=chrome&type=ws&host=${argo_domain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}
+    vless_link="vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argo_domain}&fp=chrome&type=ws&host=${argo_domain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}-ws01"
+    vmess_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}-ws01\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argo_domain}\", \"path\": \"/vmess-argo\", \"tls\": \"tls\", \"sni\": \"${argo_domain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)"
 
-vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argo_domain}\", \"path\": \"/vless-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argo_domain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)
-EOF
+    case "${argo_mode}" in
+        vless)
+            printf '%s\n' "$vless_link" > "$client_dir"
+            ;;
+        vmess)
+            printf '%s\n' "$vmess_link" > "$client_dir"
+            ;;
+        both)
+            printf '%s\n\n%s\n' "$vless_link" "$vmess_link" > "$client_dir"
+            ;;
+    esac
 
     base64 -w0 "$client_dir" > "${work_dir}/sub.txt"
     green "\nArgoDomain：${purple}${argo_domain}${re}\n"
-    green "Argo隧道节点安装完成\n"
+    green "Argo隧道${argo_mode}节点安装完成\n"
     while IFS= read -r line; do echo -e "${purple}$line"; done < "$client_dir"
     yellow "\n该安装模式未启用订阅服务，请直接复制以上节点链接\n"
 }
 
 install_argo_node() {
+    local argo_mode
+
+    clear
+    echo ""
+    green "1. 安装VLESS节点"
+    green "2. 安装VMess节点"
+    green "3. 同时安装VLESS和VMess节点"
+    purple "0. 返回主菜单"
+    reading "请输入选择(0-3) [默认1]: " argo_choice
+    argo_choice=${argo_choice:-1}
+    case "${argo_choice}" in
+        1) argo_mode="vless" ;;
+        2) argo_mode="vmess" ;;
+        3) argo_mode="both" ;;
+        0) return 0 ;;
+        *) red "无效的选项，请输入 0 到 3"; return 1 ;;
+    esac
+
     clear
     manage_packages install jq unzip iptables openssl coreutils lsof
     install_xray "Argo隧道节点"
-    filter_argo_node_config || return 1
+    filter_argo_node_config "$argo_mode" || return 1
     rm -f "${work_dir}/argo.log"
 
     if [ -x "$(command -v systemctl)" ]; then
@@ -431,7 +477,7 @@ install_argo_node() {
         red "未获取到Argo临时域名，可稍后通过Argo隧道管理重新获取\n"
         return 1
     fi
-    show_argo_node_info "$argodomain"
+    show_argo_node_info "$argodomain" "$argo_mode"
     create_shortcut
 }
 # debian/ubuntu/centos 守护进程
@@ -541,13 +587,13 @@ get_info() {
   green "\nArgoDomain：${red}$argodomain${green}\n"
 
   cat > ${work_dir}/url.txt <<EOF
-vless://${UUID}@${IP}:${GRPC_PORT}??encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#${isp}
+vless://${UUID}@${IP}:${GRPC_PORT}??encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#${isp}-ws01
 
-vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=${public_key}&allowInsecure=0&type=xhttp&mode=auto#${isp}
+vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=${public_key}&allowInsecure=0&type=xhttp&mode=auto#${isp}-ws01
 
-vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}&fp=chrome&type=ws&host=${argodomain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}
+vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}&fp=chrome&type=ws&host=${argodomain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}-ws01
 
-vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argodomain}\", \"path\": \"/vmess-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argodomain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)
+vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}-ws01\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argodomain}\", \"path\": \"/vmess-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argodomain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)
 
 EOF
 echo ""
@@ -1411,7 +1457,7 @@ while true; do
    green "1. 安装Xray-2go【默认四协议】"
    green "2. 安装grpc-reality节点"
    green "3. 安装xhttp-reality节点"
-   green "4. 安装Argo隧道两节点"
+   green "4. 安装Argo隧道节点"
    yellow "5. 安装reality节点【与默认四协议暂不兼容】"
    purple "6. 卸载Xray-2go"
    green "7. Xray-2go管理"
@@ -1472,7 +1518,7 @@ while true; do
             ;;
         4)
             if [ -f "$config_dir" ]; then
-                yellow "Xray-2go 已经安装，请先卸载后再安装Argo隧道两节点"
+                yellow "Xray-2go 已经安装，请先卸载后再安装Argo隧道节点"
             else
                 install_argo_node
             fi
