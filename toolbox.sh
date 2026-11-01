@@ -252,7 +252,7 @@ common_commands() {
             ;;
         12)
             echo "执行梭哈脚本..."
-            curl https://raw.githubusercontent.com/wszx123/ArgoX/main/suoha.sh -o suoha.sh && bash suoha.sh
+            curl https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/suoha.sh -o suoha.sh && bash suoha.sh
             back_to_menu common_commands
             ;;
         13)
