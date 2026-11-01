@@ -232,12 +232,12 @@ common_commands() {
             ;;
         8)
             echo "安装新版3X-UI..."
-            bash <(curl -Ls bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh))
+            bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
             back_to_menu common_commands
             ;;
         9)
             echo "安装稳定2.9.3版3X-UI..."
-            bash <(curl -Ls bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.9.3)
+            bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.9.3
             back_to_menu common_commands
             ;;
         10)
