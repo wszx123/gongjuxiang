@@ -991,6 +991,74 @@ refresh_standalone_subscription() {
     while IFS= read -r line; do yellow "$line"; done < "$client_dir"
 }
 
+update_default_xhttp_port() {
+    local new_port=$1
+    local current_port result_port
+
+    current_port=$(jq -r '[.inbounds[] | select(.streamSettings.network == "xhttp") | .port][0]' "$config_dir")
+    if [ "$current_port" == "$new_port" ]; then
+        yellow "\nxhttp-reality端口已经是 $new_port，无需修改\n"
+        return 0
+    fi
+
+    jq --argjson new_port "$new_port" '.inbounds |= map(if .streamSettings.network == "xhttp" then .port = $new_port else . end)' "$config_dir" > "${config_dir}.tmp"
+    if [ $? -ne 0 ]; then
+        rm -f "${config_dir}.tmp"
+        red "xhttp-reality配置写入失败"
+        return 1
+    fi
+
+    result_port=$(jq -r '[.inbounds[] | select(.streamSettings.network == "xhttp") | .port][0]' "${config_dir}.tmp")
+    if [ "$result_port" != "$new_port" ]; then
+        rm -f "${config_dir}.tmp"
+        red "xhttp-reality端口校验失败"
+        return 1
+    fi
+
+    mv "${config_dir}.tmp" "$config_dir"
+
+    awk -v port="$new_port" '
+        /type=xhttp/ && /^vless:\/\// {
+            query_pos = index($0, "?")
+            if (query_pos > 0) {
+                address = substr($0, 1, query_pos - 1)
+                query = substr($0, query_pos)
+                sub(/:[0-9]+$/, ":" port, address)
+                print address query
+            } else {
+                print
+            }
+            next
+        }
+        { print }
+    ' "$client_dir" > "${client_dir}.tmp"
+
+    if ! grep -q "type=xhttp" "${client_dir}.tmp" || ! grep -Fq ":${new_port}?" "${client_dir}.tmp"; then
+        rm -f "${client_dir}.tmp"
+        red "xhttp-reality节点链接更新失败"
+        return 1
+    fi
+
+    mv "${client_dir}.tmp" "$client_dir"
+    restart_installed_xray
+
+    if [ -x "$(command -v systemctl)" ]; then
+        if ! systemctl is-active --quiet xray; then
+            red "xray服务重启失败，端口修改未生效"
+            return 1
+        fi
+    elif [ -x "$(command -v rc-update)" ]; then
+        if ! rc-service xray status | grep -q "started"; then
+            red "xray服务重启失败，端口修改未生效"
+            return 1
+        fi
+    fi
+
+    refresh_standalone_subscription
+    green "\nxhttp-reality端口已修改成：${purple}$new_port${re}\n"
+    green "配置文件实际端口：$new_port\n"
+}
+
 update_standalone_uuid_links() {
     local new_uuid=$1
     local content vmess_urls vmess_url encoded_vmess decoded_vmess updated_vmess encoded_updated_vmess new_vmess_url
@@ -1155,11 +1223,7 @@ change_default_two_config() {
                     break
                 fi
             done
-            jq --argjson new_port "$new_port" '.inbounds |= map(if .streamSettings.network == "xhttp" then .port = $new_port else . end)' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
-            awk -v port="$new_port" '/type=xhttp/ && /^vless:\/\// { query_pos = index($0, "?"); if (query_pos > 0) { address = substr($0, 1, query_pos - 1); query = substr($0, query_pos); sub(/:[0-9]+$/, ":" port, address); print address query; next } } { print }' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
-            restart_installed_xray
-            refresh_standalone_subscription
-            green "\nxhttp-reality端口已修改成：${purple}$new_port${re}\n"
+            update_default_xhttp_port "$new_port"
             ;;
         3)
             green "\n1. bgk.jp\n\n2. www.joom.com\n\n3. www.stengg.com\n\n4. www.nazhumi.com\n"
