@@ -2181,7 +2181,7 @@ SSH_port_forwarding() {
 
 show_usage() {
     echo -e "┌────────────────────────────────────────────────────────────────┐
-│  ${blue}x-ui 控制菜单用法（子命令）：${plain}                                │
+│  ${blue}x-ui 控制菜单用法（子命令）【20261101】：${plain}                    │
 │                                                                │
 │  ${blue}x-ui${plain}                       - 管理脚本                         │
 │  ${blue}x-ui start${plain}                 - 启动                             │
