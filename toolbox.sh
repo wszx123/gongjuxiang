@@ -61,23 +61,24 @@ common_commands() {
     echo "6. F大warp添加IPV4"
     echo "7. ★安装hy2"
     echo "8. ★安装 新版3X-UI"
-    echo "9. 安装F大argox隧道"
-    echo "10. 删除argox脚本"
-    echo "11. 梭哈脚本"
-    echo "12. 查看梭哈"
-    echo -e "${RED}13. 一键无脑隧道-修改【二协议，推荐】${NC}"
-    echo "14. 一键无脑隧道-修改【四协议】"
-    echo "15. ARGO 隧道 多协议一键脚本【自用，Db 12 以上】"
-    echo "16. NAT_vps_vless_reality【NAT小鸡安装vless_reality】"
+    echo "9. 安装 稳定2.9.3版3X-UI"
+    echo "10. 安装F大argox隧道"
+    echo "11. 删除argox脚本"
+    echo "12. 梭哈脚本"
+    echo "13. 查看梭哈"
+    echo -e "${GREEN}14. 一键无脑隧道-修改【二协议，推荐】${NC}"
+    echo "15. 一键无脑隧道-修改【四协议】"
+    echo "16. ARGO 隧道 多协议一键脚本【自用，Db 12 以上】"
+    echo "17. NAT_vps_vless_reality【NAT小鸡安装vless_reality】"
     echo "------------------------------------------------------------"
-    echo "17. 融合怪命令1【综合测试】"
-    echo "18. 融合怪命令2【三网测试】"
-    echo "19. 硬件测试3【综合测试】"
-    echo "20. 硬件测试4【基本信息】"
-    echo "21. 硬件测试5【IP质量】"
-    echo "22. 硬件测试5【网络质量、回程路由】"
-    echo "23. 解锁测试"
-    echo "24. 更新系统"
+    echo "18. 融合怪命令1【综合测试】"
+    echo "19. 融合怪命令2【三网测试】"
+    echo "20. 硬件测试3【综合测试】"
+    echo "21. 硬件测试4【基本信息】"
+    echo "22. 硬件测试5【IP质量】"
+    echo "23. 硬件测试5【网络质量、回程路由】"
+    echo "24. 解锁测试"
+    echo "25. 更新系统"
     echo "0. 返回主菜单"
     
     read -p "请选择 (0-16): " choice
@@ -231,25 +232,30 @@ common_commands() {
             ;;
         8)
             echo "安装新版3X-UI..."
-            bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/3x-ui/install-3x-ui-2.sh)
+            bash <(curl -Ls bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh))
             back_to_menu common_commands
             ;;
         9)
+            echo "安装稳定2.9.3版3X-UI..."
+            bash <(curl -Ls bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.9.3)
+            back_to_menu common_commands
+            ;;
+        10)
             echo "安装F大argox隧道..."
             bash <(wget -qO- https://raw.githubusercontent.com/fscarmen/argox/main/argox.sh)
             back_to_menu common_commands
             ;;
-        10)
+        11)
             echo "删除argox脚本..."
             argox -u
             back_to_menu common_commands
             ;;
-        11)
+        12)
             echo "执行梭哈脚本..."
             curl https://raw.githubusercontent.com/wszx123/ArgoX/main/suoha.sh -o suoha.sh && bash suoha.sh
             back_to_menu common_commands
             ;;
-        12)
+        13)
             echo "查看梭哈..."
             if [ -f v2ray.txt ]; then
                 cat v2ray.txt
@@ -258,63 +264,63 @@ common_commands() {
             fi
             back_to_menu common_commands
             ;;
-        13)
+        14)
             echo "一键无脑隧道-修改【二协议，推荐】..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/xray_2go.sh)
             back_to_menu common_commands
             ;;
-        14)
+        15)
             echo "一键无脑隧道-修改【四协议】..."
             bash <(curl -Ls https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/ArgoSB/xray_2go-4.sh)
             back_to_menu common_commands
             ;;
-        15)
+        16)
             echo "ARGO 隧道 多协议一键脚本【自用, Db 12以上】..."
             bash <(curl -fsSL https://raw.githubusercontent.com/wszx123/vless-xhttp-reality-self/refs/heads/main/scripts/install.sh)
             back_to_menu common_commands
             ;;
-        16)
+        17)
             echo "NAT_vps_vless_reality【NAT小鸡安装vless_reality】..."
             nat_vless_reality
             back_to_menu common_commands
             ;;
 
-        17)
+        18)
             echo "融合怪命令1【综合测试】..."
             bash <(wget -qO- bash.spiritlhl.net/ecs)
             back_to_menu common_commands
             ;;
-        18)
+        19)
             echo "融合怪命令2【三网测试】..."
             bash <(curl -L -s https://bench.im/hyperspeed)
             back_to_menu common_commands
             ;;
-        19)
+        20)
             echo "硬件测试3【综合测试】..."
             bash <(curl -sL https://run.NodeQuality.com)
             back_to_menu common_commands
             ;;
-        20)
+        21)
             echo "硬件测试4【基本信息】..."
             bash <(curl -Ls https://Check.Place) -H
             back_to_menu common_commands
             ;;
-        21)
+        22)
             echo "硬件测试5【IP质量】..."
             bash <(curl -Ls https://Check.Place) -I
             back_to_menu common_commands
             ;;
-        22)
+        23)
             echo "硬件测试5【网络质量、回程路由】..."
             bash <(curl -Ls https://Check.Place) -N
             back_to_menu common_commands
             ;;
-        23)
+        24)
             echo "解锁测试..."
             bash <(curl -L -s media.ispvps.com)
             back_to_menu common_commands
             ;;
-        24)
+        25)
             echo "更新系统..."
             read -p "确认更新系统？(y/n): " confirm
             if [[ "$confirm" == "y" ]]; then
