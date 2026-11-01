@@ -8,8 +8,11 @@ NC='\033[0m' # No Color
 
 # CF优选域名列表，需要新增域名时直接在此追加
 preferred_domains=(
-    "freeyx.cloudflare88.eu.org"
+    "icook.hk"
     "cf.090227.xyz"
+    "cf.877774.xyz"
+    "cdns.doon.eu.org"
+    "www.baipiao.eu.org"
     "cloudflare.182682.xyz"
 )
 
