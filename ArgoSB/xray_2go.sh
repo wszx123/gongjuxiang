@@ -152,7 +152,7 @@ get_realip() {
 # 下载并安装 xray,cloudflared
 install_xray() {
     clear
-    purple "正在安装${1:-Xray-2go【默认四协议】}中，请稍等..."
+    purple "正在安装${1:-Xray-2go【默认二协议】}中，请稍等..."
     ARCH_RAW=$(uname -m)
     case "${ARCH_RAW}" in
         'x86_64') ARCH='amd64'; ARCH_ARG='64' ;;
@@ -243,6 +243,16 @@ cat > "${config_dir}" << EOF
     ]
 }
 EOF
+}
+
+filter_default_two_protocol_config() {
+    jq '.inbounds = [.inbounds[0], .inbounds[2], .inbounds[4]] | .inbounds[0].settings.fallbacks = [.inbounds[0].settings.fallbacks[] | select(.path == "/vless-argo")]' "$config_dir" > "${config_dir}.tmp"
+    if [ $? -ne 0 ]; then
+        rm -f "${config_dir}.tmp"
+        red "默认二协议配置生成失败"
+        return 1
+    fi
+    mv "${config_dir}.tmp" "$config_dir"
 }
 
 write_xray_systemd_service() {
@@ -604,6 +614,35 @@ green "节点订阅链接：http://$IP:$PORT/$password\n\n订阅链接适用于V
 green "订阅二维码"
 $work_dir/qrencode "http://$IP:$PORT/$password"
 echo ""
+}
+
+get_default_two_info() {
+    clear
+    IP=$(get_realip)
+    isp=$(get_isp_name)
+    argodomain=$(get_argo_domain_only)
+
+    if [ -z "$argodomain" ]; then
+        restart_argo
+        sleep 6
+        argodomain=$(get_argo_domain_only)
+    fi
+
+    green "\nArgoDomain：${red}$argodomain${green}\n"
+
+    cat > "${work_dir}/url.txt" <<EOF
+vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=${public_key}&allowInsecure=0&type=xhttp&mode=auto#${isp}-ws01
+
+vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}&fp=chrome&type=ws&host=${argodomain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}-ws01
+EOF
+
+    echo ""
+    while IFS= read -r line; do echo -e "${purple}$line"; done < "${work_dir}/url.txt"
+    base64 -w0 "${work_dir}/url.txt" > "${work_dir}/sub.txt"
+    green "节点订阅链接：http://$IP:$PORT/$password\n"
+    green "节点二维码"
+    "${work_dir}/qrencode" "http://$IP:$PORT/$password"
+    echo ""
 }
 
 # 处理ubuntu系统中没有caddy源的问题
@@ -1073,6 +1112,75 @@ change_single_node_config() {
     esac
 }
 
+# 默认二协议配置管理
+change_default_two_config() {
+    local new_uuid new_port new_sni
+
+    clear
+    echo ""
+    green "1. 修改UUID"
+    skyblue "------------"
+    green "2. 修改xhttp-reality端口"
+    skyblue "------------"
+    green "3. 修改xhttp-reality伪装域名"
+    skyblue "------------"
+    purple "${red}0. 返回主菜单"
+    skyblue "------------"
+    reading "请输入选择: " choice
+    case "${choice}" in
+        1)
+            reading "\n请输入新的UUID: " new_uuid
+            [ -z "$new_uuid" ] && new_uuid=$(cat /proc/sys/kernel/random/uuid)
+            until [[ "$new_uuid" =~ ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$ ]]; do
+                red "UUID格式不正确"
+                reading "请重新输入UUID: " new_uuid
+            done
+            jq --arg new_uuid "$new_uuid" '.inbounds[].settings.clients[].id = $new_uuid' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+            sed -i -E "s#^(vless://)[^@]+@#\1${new_uuid}@#" "$client_dir"
+            restart_installed_xray
+            refresh_standalone_subscription
+            green "\nUUID已修改为：${purple}${new_uuid}${re}\n"
+            ;;
+        2)
+            reading "\n请输入xhttp-reality端口 (回车使用随机端口): " new_port
+            [ -z "$new_port" ] && new_port=$(shuf -i 2000-65000 -n 1)
+            while true; do
+                if [[ ! "$new_port" =~ ^[0-9]+$ ]] || [ "$new_port" -lt 1 ] || [ "$new_port" -gt 65535 ]; then
+                    red "端口必须是1-65535"
+                    reading "请重新输入xhttp-reality端口: " new_port
+                elif [ -n "$(lsof -iTCP:"$new_port" -sTCP:LISTEN 2>/dev/null)" ]; then
+                    red "${new_port}端口已经被其他程序占用，请更换端口重试"
+                    reading "请重新输入xhttp-reality端口: " new_port
+                else
+                    break
+                fi
+            done
+            jq --argjson new_port "$new_port" '.inbounds |= map(if .streamSettings.network == "xhttp" then .port = $new_port else . end)' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+            awk -v port="$new_port" '/type=xhttp/ && /^vless:\/\// { query_pos = index($0, "?"); if (query_pos > 0) { address = substr($0, 1, query_pos - 1); query = substr($0, query_pos); sub(/:[0-9]+$/, ":" port, address); print address query; next } } { print }' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
+            restart_installed_xray
+            refresh_standalone_subscription
+            green "\nxhttp-reality端口已修改成：${purple}$new_port${re}\n"
+            ;;
+        3)
+            green "\n1. bgk.jp\n\n2. www.joom.com\n\n3. www.stengg.com\n\n4. www.nazhumi.com\n"
+            reading "\n请输入新的Reality伪装域名(可自定义输入,回车使用默认1): " new_sni
+            case "$new_sni" in
+                ""|1) new_sni="bgk.jp" ;;
+                2) new_sni="www.joom.com" ;;
+                3) new_sni="www.stengg.com" ;;
+                4) new_sni="www.nazhumi.com" ;;
+            esac
+            jq --arg new_sni "$new_sni" '.inbounds |= map(if .streamSettings.network == "xhttp" then .streamSettings.realitySettings.target = ($new_sni + ":443") | .streamSettings.realitySettings.serverNames = [$new_sni] else . end)' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+            awk -v new_sni="$new_sni" '/type=xhttp/ && /^vless:\/\// { gsub(/sni=[^&]+/, "sni=" new_sni); print; next } { print }' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
+            restart_installed_xray
+            refresh_standalone_subscription
+            green "\nxhttp-reality SNI已修改为：${purple}$new_sni${re}\n"
+            ;;
+        0) return 0 ;;
+        *) red "无效的选项！" ;;
+    esac
+}
+
 # 变更配置
 change_config() {
 clear
@@ -1454,11 +1562,11 @@ while true; do
    red " Argo 状态: ${check_argo_status}"   
    red "Caddy 状态: ${check_caddy_status}"
    echo "=============================="
-   green "1. 安装Xray-2go【默认四协议】"
-   green "2. 安装grpc-reality节点"
+   green "1. 安装Xray-2go【默认二协议】"
+   green "2. 安装grpc-reality节点【单独安装节点互不兼容】"
    green "3. 安装xhttp-reality节点"
    green "4. 安装Argo隧道节点"
-   yellow "5. 安装reality节点【与默认四协议暂不兼容】"
+   yellow "5. 安装reality节点"
    purple "6. 卸载Xray-2go"
    green "7. Xray-2go管理"
    green "8. Argo隧道管理"
@@ -1482,6 +1590,7 @@ while true; do
                 install_caddy
                 manage_packages install jq unzip iptables openssl coreutils lsof
                 install_xray
+                filter_default_two_protocol_config || exit 1
                 echo "default" > "${work_dir}/install-mode"
 
                 if [ -x "$(command -v systemctl)" ]; then
@@ -1497,7 +1606,7 @@ while true; do
                 fi
 
                 sleep 3
-                get_info
+                get_default_two_info
                 add_caddy_conf
                 create_shortcut
             fi
@@ -1544,7 +1653,7 @@ while true; do
             if [ -f "${work_dir}/install-mode" ] && [ "$(cat "${work_dir}/install-mode" 2>/dev/null)" != "default" ]; then
                 change_single_node_config
             else
-                change_config
+                change_default_two_config
             fi
             ;;
         11)
