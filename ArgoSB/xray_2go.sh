@@ -190,7 +190,6 @@ cat > "${config_dir}" << EOF
   "log": { "access": "/dev/null", "error": "/dev/null", "loglevel": "none" },
   "inbounds": [
     {
-      "tag": "argo",
       "port": $ARGO_PORT,
       "protocol": "vless",
       "settings": {
@@ -204,33 +203,28 @@ cat > "${config_dir}" << EOF
       "streamSettings": { "network": "tcp" }
     },
     {
-      "tag": "argo-direct",
       "port": 3001, "listen": "127.0.0.1", "protocol": "vless",
       "settings": { "clients": [{ "id": "$UUID" }], "decryption": "none" },
       "streamSettings": { "network": "tcp", "security": "none" }
     },
     {
-      "tag": "argo-vless",
       "port": 3002, "listen": "127.0.0.1", "protocol": "vless",
       "settings": { "clients": [{ "id": "$UUID", "level": 0 }], "decryption": "none" },
       "streamSettings": { "network": "ws", "security": "none", "wsSettings": { "path": "/vless-argo" } },
       "sniffing": { "enabled": true, "destOverride": ["http", "tls", "quic"], "metadataOnly": false }
     },
     {
-      "tag": "argo-vmess",
       "port": 3003, "listen": "127.0.0.1", "protocol": "vmess",
       "settings": { "clients": [{ "id": "$UUID", "alterId": 0 }] },
       "streamSettings": { "network": "ws", "wsSettings": { "path": "/vmess-argo" } },
       "sniffing": { "enabled": true, "destOverride": ["http", "tls", "quic"], "metadataOnly": false }
     },
     {
-      "tag": "xhttp-reality",
       "listen":"::","port": $XHTTP_PORT, "protocol": "vless","settings": {"clients": [{"id": "$UUID"}],"decryption": "none"},
       "streamSettings": {"network": "xhttp","security": "reality","realitySettings": {"target": "www.nazhumi.com:443","xver": 0,"serverNames": 
       ["www.nazhumi.com"],"privateKey": "$private_key","shortIds": [""]}},"sniffing": {"enabled": true,"destOverride": ["http","tls","quic"]}
     },
     {
-      "tag": "grpc-reality",
       "listen":"::","port":$GRPC_PORT,"protocol":"vless","settings":{"clients":[{"id":"$UUID"}],"decryption":"none"},
       "streamSettings":{"network":"grpc","security":"reality","realitySettings":{"dest":"www.iij.ad.jp:443","serverNames":["www.iij.ad.jp"],
       "privateKey":"$private_key","shortIds":[""]},"grpcSettings":{"serviceName":"grpc"}},"sniffing":{"enabled":true,"destOverride":["http","tls","quic"]}
@@ -249,8 +243,6 @@ cat > "${config_dir}" << EOF
     ]
 }
 EOF
-
-    printf '%s\n' argo grpc-reality xhttp-reality > "${work_dir}/installed-modes"
 }
 
 write_xray_systemd_service() {
@@ -309,14 +301,13 @@ filter_single_node_config() {
 
     case "${node_mode}" in
         grpc-reality)
-            jq '.inbounds = [.inbounds[] | select(.tag == "grpc-reality")]' "$config_dir" > "${config_dir}.tmp"
+            jq '.inbounds = [.inbounds[] | select(.streamSettings.network == "grpc" and .streamSettings.security == "reality")]' "$config_dir" > "${config_dir}.tmp"
             ;;
         xhttp-reality)
-            jq '.inbounds = [.inbounds[] | select(.tag == "xhttp-reality")]' "$config_dir" > "${config_dir}.tmp"
+            jq '.inbounds = [.inbounds[] | select(.streamSettings.network == "xhttp" and .streamSettings.security == "reality")]' "$config_dir" > "${config_dir}.tmp"
             ;;
         reality)
-            make_node_inbound "reality" "$GRPC_PORT" "$private_key" > "${work_dir}/new-inbounds.json"
-            jq --slurpfile new "${work_dir}/new-inbounds.json" '.inbounds = $new' "$config_dir" > "${config_dir}.tmp"
+            jq '.inbounds = [.inbounds[] | select(.streamSettings.network == "grpc" and .streamSettings.security == "reality") | .streamSettings.network = "tcp" | .settings.clients[0].flow = "xtls-rprx-vision" | .streamSettings.realitySettings.target = .streamSettings.realitySettings.dest | del(.streamSettings.grpcSettings)]' "$config_dir" > "${config_dir}.tmp"
             ;;
         *)
             red "未知节点类型：${node_mode}"
@@ -327,7 +318,6 @@ filter_single_node_config() {
     if [ $? -eq 0 ]; then
         mv "${config_dir}.tmp" "$config_dir"
         echo "${node_mode}" > "${work_dir}/install-mode"
-        printf '%s\n' "${node_mode}" > "${work_dir}/installed-modes"
     else
         rm -f "${config_dir}.tmp"
         red "节点配置生成失败"
@@ -337,277 +327,6 @@ filter_single_node_config() {
 
 get_isp_name() {
     curl -sm 3 -H "User-Agent: Mozilla/5.0" "https://api.ip.sb/geoip" | tr -d '\n' | awk -F\" '{c="";i="";for(x=1;x<=NF;x++){if($x=="country_code")c=$(x+2);if($x=="isp")i=$(x+2)};if(c&&i)print c"-"i}' | sed 's/ /_/g' || curl -sm 3 -H "User-Agent: Mozilla/5.0" "https://ipapi.co/json" | tr -d '\n' | awk -F\" '{c="";o="";for(x=1;x<=NF;x++){if($x=="country_code")c=$(x+2);if($x=="org")o=$(x+2)};if(c&&o)print c"-"o}' | sed 's/ /_/g' || echo "vps"
-}
-
-mode_installed() {
-    [ -f "${work_dir}/installed-modes" ] && grep -qx "$1" "${work_dir}/installed-modes"
-}
-
-normalize_config_tags() {
-    [ -f "$config_dir" ] || return 0
-
-    jq '
-        .inbounds |= map(
-            if .streamSettings.network == "grpc" and .streamSettings.security == "reality" then .tag = "grpc-reality"
-            elif .streamSettings.network == "xhttp" and .streamSettings.security == "reality" then .tag = "xhttp-reality"
-            elif .streamSettings.network == "tcp" and .streamSettings.security == "reality" then .tag = "reality"
-            elif ((.settings.fallbacks? // []) | length > 0) then .tag = "argo"
-            elif .port == 3001 and .listen == "127.0.0.1" then .tag = "argo-direct"
-            elif .port == 3002 and .listen == "127.0.0.1" then .tag = "argo-vless"
-            elif .port == 3003 and .listen == "127.0.0.1" then .tag = "argo-vmess"
-            else . end
-        )
-    ' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir"
-}
-
-ensure_installed_modes() {
-    [ -f "$config_dir" ] || return 0
-    [ -f "${work_dir}/installed-modes" ] && return 0
-
-    if [ -f "${work_dir}/install-mode" ]; then
-        case "$(cat "${work_dir}/install-mode" 2>/dev/null)" in
-            default)
-                printf '%s\n' argo grpc-reality xhttp-reality > "${work_dir}/installed-modes"
-                ;;
-            grpc-reality|xhttp-reality|reality|argo)
-                cat "${work_dir}/install-mode" > "${work_dir}/installed-modes"
-                ;;
-        esac
-    fi
-
-    if [ ! -s "${work_dir}/installed-modes" ]; then
-        jq -r '.inbounds[].tag // empty' "$config_dir" 2>/dev/null | while read -r tag; do
-            case "$tag" in
-                argo|argo-direct|argo-vless|argo-vmess) echo argo ;;
-                grpc-reality|xhttp-reality|reality) echo "$tag" ;;
-            esac
-        done | sort -u > "${work_dir}/installed-modes"
-    fi
-}
-
-add_installed_mode() {
-    mode_installed "$1" || printf '%s\n' "$1" >> "${work_dir}/installed-modes"
-}
-
-installed_modes_list() {
-    [ -f "${work_dir}/installed-modes" ] && cat "${work_dir}/installed-modes" || true
-}
-
-is_default_installed() {
-    mode_installed "argo" && mode_installed "grpc-reality" && mode_installed "xhttp-reality"
-}
-
-choose_free_port() {
-    local port used_ports
-    used_ports="$(jq -r '.inbounds[].port' "$config_dir" 2>/dev/null | tr '\n' ' ') 8080 3001 3002 3003"
-
-    while true; do
-        port=$(shuf -i 2000-65000 -n 1)
-        if ! echo "$used_ports" | grep -qw "$port" && [ -z "$(lsof -iTCP:"$port" -sTCP:LISTEN 2>/dev/null)" ]; then
-            echo "$port"
-            return 0
-        fi
-    done
-}
-
-make_node_inbound() {
-    local mode=$1
-    local port=$2
-    local private_key=$3
-    local public_key=$4
-    local uuid=$5
-
-    case "$mode" in
-        grpc-reality)
-            jq -cn --arg uuid "$uuid" --argjson port "$port" --arg private_key "$private_key" '{
-                tag: "grpc-reality",
-                listen: "::",
-                port: $port,
-                protocol: "vless",
-                settings: { clients: [{ id: $uuid }], decryption: "none" },
-                streamSettings: {
-                    network: "grpc",
-                    security: "reality",
-                    realitySettings: {
-                        dest: "www.iij.ad.jp:443",
-                        serverNames: ["www.iij.ad.jp"],
-                        privateKey: $private_key,
-                        shortIds: [""]
-                    },
-                    grpcSettings: { serviceName: "grpc" }
-                },
-                sniffing: { enabled: true, destOverride: ["http", "tls", "quic"] }
-            }'
-            ;;
-        xhttp-reality)
-            jq -cn --arg uuid "$uuid" --argjson port "$port" --arg private_key "$private_key" '{
-                tag: "xhttp-reality",
-                listen: "::",
-                port: $port,
-                protocol: "vless",
-                settings: { clients: [{ id: $uuid }], decryption: "none" },
-                streamSettings: {
-                    network: "xhttp",
-                    security: "reality",
-                    realitySettings: {
-                        target: "www.nazhumi.com:443",
-                        xver: 0,
-                        serverNames: ["www.nazhumi.com"],
-                        privateKey: $private_key,
-                        shortIds: [""]
-                    }
-                },
-                sniffing: { enabled: true, destOverride: ["http", "tls", "quic"] }
-            }'
-            ;;
-        reality)
-            jq -cn --arg uuid "$uuid" --argjson port "$port" --arg private_key "$private_key" '{
-                tag: "reality",
-                listen: "::",
-                port: $port,
-                protocol: "vless",
-                settings: { clients: [{ id: $uuid, flow: "xtls-rprx-vision" }], decryption: "none" },
-                streamSettings: {
-                    network: "tcp",
-                    security: "reality",
-                    realitySettings: {
-                        target: "www.iij.ad.jp:443",
-                        serverNames: ["www.iij.ad.jp"],
-                        privateKey: $private_key,
-                        shortIds: [""]
-                    }
-                },
-                sniffing: { enabled: true, destOverride: ["http", "tls", "quic"] }
-            }'
-            ;;
-        argo)
-            jq -cn --arg uuid "$uuid" --argjson port 8080 '{
-                tag: "argo",
-                port: $port,
-                protocol: "vless",
-                settings: {
-                    clients: [{ id: $uuid, flow: "xtls-rprx-vision" }],
-                    decryption: "none",
-                    fallbacks: [
-                        { dest: 3001 },
-                        { path: "/vless-argo", dest: 3002 },
-                        { path: "/vmess-argo", dest: 3003 }
-                    ]
-                },
-                streamSettings: { network: "tcp" }
-            }'
-            jq -cn --arg uuid "$uuid" '{
-                tag: "argo-direct",
-                port: 3001,
-                listen: "127.0.0.1",
-                protocol: "vless",
-                settings: { clients: [{ id: $uuid }], decryption: "none" },
-                streamSettings: { network: "tcp", security: "none" }
-            }'
-            jq -cn --arg uuid "$uuid" '{
-                tag: "argo-vless",
-                port: 3002,
-                listen: "127.0.0.1",
-                protocol: "vless",
-                settings: { clients: [{ id: $uuid, level: 0 }], decryption: "none" },
-                streamSettings: { network: "ws", security: "none", wsSettings: { path: "/vless-argo" } },
-                sniffing: { enabled: true, destOverride: ["http", "tls", "quic"], metadataOnly: false }
-            }'
-            jq -cn --arg uuid "$uuid" '{
-                tag: "argo-vmess",
-                port: 3003,
-                listen: "127.0.0.1",
-                protocol: "vmess",
-                settings: { clients: [{ id: $uuid, alterId: 0 }] },
-                streamSettings: { network: "ws", wsSettings: { path: "/vmess-argo" } },
-                sniffing: { enabled: true, destOverride: ["http", "tls", "quic"], metadataOnly: false }
-            }'
-            ;;
-    esac
-}
-
-append_node_link() {
-    local mode=$1
-    local port=$2
-    local public_key=$3
-    local uuid=$4
-    local ip isp argo_domain
-
-    ip=$(get_realip)
-    isp=$(get_isp_name)
-
-    case "$mode" in
-        grpc-reality)
-            printf 'vless://%s@%s:%s?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=%s&allowInsecure=0&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#%s\n' "$uuid" "$ip" "$port" "$public_key" "$isp" >> "$client_dir"
-            ;;
-        xhttp-reality)
-            printf 'vless://%s@%s:%s?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=%s&allowInsecure=0&type=xhttp&mode=auto#%s\n' "$uuid" "$ip" "$port" "$public_key" "$isp" >> "$client_dir"
-            ;;
-        reality)
-            printf 'vless://%s@%s:%s?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=%s&allowInsecure=0&type=tcp&flow=xtls-rprx-vision#%s\n' "$uuid" "$ip" "$port" "$public_key" "$isp" >> "$client_dir"
-            ;;
-        argo)
-            argo_domain=$(get_argo_domain_only)
-            printf 'vless://%s@%s:%s?encryption=none&security=tls&sni=%s&fp=chrome&type=ws&host=%s&path=%%2Fvless-argo%%3Fed%%3D2560&allowInsecure=0#%s\n' "$uuid" "$CFIP" "$CFPORT" "$argo_domain" "$argo_domain" "$isp" >> "$client_dir"
-            printf 'vmess://%s\n' "$(printf '{ "v": "2", "ps": "%s", "add": "%s", "port": "%s", "id": "%s", "aid": "0", "scy": "none", "net": "ws", "type": "none", "host": "%s", "path": "/vmess-argo?ed=2560", "tls": "tls", "sni": "%s", "alpn": "", "fp": "chrome", "allowInsecure": false }' "$isp" "$CFIP" "$CFPORT" "$uuid" "$argo_domain" "$argo_domain" | base64 -w0)" >> "$client_dir"
-            ;;
-    esac
-
-    base64 -w0 "$client_dir" > "${work_dir}/sub.txt"
-}
-
-ensure_argo_service() {
-    if [ -x "$(command -v systemctl)" ]; then
-        main_systemd_services
-    elif [ -x "$(command -v rc-update)" ]; then
-        alpine_openrc_services
-        change_hosts
-        rc-service xray restart
-        rc-service tunnel restart
-    else
-        red "Unsupported init system"
-        return 1
-    fi
-}
-
-add_xray_node() {
-    local mode=$1
-    local port private_key public_key uuid output
-
-    if mode_installed "$mode"; then
-        yellow "${mode} 已经安装"
-        return 0
-    fi
-
-    [ -f "$config_dir" ] || { red "Xray 配置不存在，请先安装 Xray-2go"; return 1; }
-
-    uuid=$(jq -r '[.inbounds[].settings.clients[0].id][0]' "$config_dir")
-    [ -z "$uuid" ] && uuid=$(cat /proc/sys/kernel/random/uuid)
-
-    output=$(${work_dir}/xray x25519)
-    private_key=$(echo "$output" | grep 'PrivateKey:' | awk '{print $2}')
-    public_key=$(echo "$output" | grep 'Password (PublicKey):' | awk '{print $3}')
-
-    port=$(choose_free_port)
-    make_node_inbound "$mode" "$port" "$private_key" > "${work_dir}/new-inbounds.json"
-
-    jq --slurpfile new "${work_dir}/new-inbounds.json" '.inbounds += $new' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir"
-    add_installed_mode "$mode"
-    if [ "$(wc -l < "${work_dir}/installed-modes")" -gt 1 ]; then
-        echo "mixed" > "${work_dir}/install-mode"
-    else
-        echo "$mode" > "${work_dir}/install-mode"
-    fi
-
-    if [ "$mode" == "argo" ]; then
-        ensure_argo_service
-    else
-        restart_installed_xray
-    fi
-
-    append_node_link "$mode" "$port" "$public_key" "$uuid"
-    green "\n${mode}节点已添加\n"
-    tail -n 2 "$client_dir"
 }
 
 show_single_node_info() {
@@ -648,14 +367,13 @@ install_single_xray_node() {
 }
 
 filter_argo_node_config() {
-    jq '.inbounds = [.inbounds[] | select(.tag == "argo" or .tag == "argo-direct" or .tag == "argo-vless" or .tag == "argo-vmess")]' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir"
+    jq '.inbounds = .inbounds[:4]' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir"
     if [ $? -ne 0 ]; then
         rm -f "${config_dir}.tmp"
         red "Argo节点配置生成失败"
         return 1
     fi
     echo "argo" > "${work_dir}/install-mode"
-    printf '%s\n' argo > "${work_dir}/installed-modes"
 }
 
 get_argo_domain_only() {
@@ -1228,84 +946,9 @@ update_standalone_port_links() {
     ' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
 }
 
-update_standalone_port_links_by_mode() {
-    local mode=$1
-    local port=$2
-    local pattern
-
-    case "$mode" in
-        grpc-reality) pattern='type=grpc' ;;
-        xhttp-reality) pattern='type=xhttp' ;;
-        reality) pattern='type=tcp' ;;
-        argo) pattern='type=ws' ;;
-        *) return 1 ;;
-    esac
-
-    awk -v pattern="$pattern" -v port="$port" '
-        $0 ~ pattern && /^vless:\/\// {
-            if (match($0, /^vless:\/\/[^@]+@[^:]+:[0-9]+/)) {
-                prefix = substr($0, 1, RLENGTH)
-                sub(/:[0-9]+$/, ":" port, prefix)
-                print prefix substr($0, RLENGTH + 1)
-                next
-            }
-        }
-        { print }
-    ' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
-}
-
-update_standalone_sni_links_by_mode() {
-    local mode=$1
-    local sni=$2
-    local pattern
-
-    case "$mode" in
-        grpc-reality) pattern='type=grpc' ;;
-        xhttp-reality) pattern='type=xhttp' ;;
-        reality) pattern='type=tcp' ;;
-        argo) pattern='type=ws' ;;
-        *) return 1 ;;
-    esac
-
-    awk -v pattern="$pattern" -v sni="$sni" '
-        $0 ~ pattern && /^vless:\/\// {
-            gsub(/sni=[^&]+/, "sni=" sni)
-            gsub(/host=[^&]+/, "host=" sni)
-            gsub(/authority=[^&]+/, "authority=" sni)
-            print
-            next
-        }
-        { print }
-    ' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
-}
-
 change_single_node_config() {
-    local modes mode_count mode_choice node_mode new_uuid new_port new_sni i
-
-    mapfile -t modes < <(installed_modes_list)
-    mode_count=${#modes[@]}
-
-    if [ "$mode_count" -eq 0 ]; then
-        yellow "未识别到已安装节点"
-        return 1
-    fi
-
-    if [ "$mode_count" -eq 1 ]; then
-        node_mode="${modes[0]}"
-    else
-        clear
-        echo ""
-        green "已安装节点："
-        for ((i = 0; i < mode_count; i++)); do
-            green "$((i + 1)). ${modes[$i]}"
-        done
-        reading "请选择要修改的节点: " mode_choice
-        until [[ "$mode_choice" =~ ^[1-9][0-9]*$ ]] && [ "$mode_choice" -ge 1 ] && [ "$mode_choice" -le "$mode_count" ]; do
-            red "无效的节点编号"
-            reading "请重新输入节点编号: " mode_choice
-        done
-        node_mode="${modes[$((mode_choice - 1))]}"
-    fi
+    local node_mode new_uuid new_port new_sni
+    node_mode=$(cat "${work_dir}/install-mode" 2>/dev/null)
 
     clear
     echo ""
@@ -1329,11 +972,7 @@ change_single_node_config() {
                 red "UUID格式不正确"
                 reading "请重新输入UUID: " new_uuid
             done
-            if [ "$node_mode" == "argo" ]; then
-                jq --arg new_uuid "$new_uuid" '.inbounds |= map(if .tag == "argo" or .tag == "argo-direct" or .tag == "argo-vless" or .tag == "argo-vmess" then .settings.clients |= map(.id = $new_uuid) else . end)' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
-            else
-                jq --arg mode "$node_mode" --arg new_uuid "$new_uuid" '.inbounds |= map(if .tag == $mode then .settings.clients |= map(.id = $new_uuid) else . end)' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
-            fi
+            jq --arg new_uuid "$new_uuid" '.inbounds[].settings.clients[].id = $new_uuid' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
             update_standalone_uuid_links "$new_uuid"
             restart_installed_xray
             refresh_standalone_subscription
@@ -1356,8 +995,8 @@ change_single_node_config() {
                         break
                     fi
                 done
-                jq --arg mode "$node_mode" --argjson new_port "$new_port" '.inbounds |= map(if .tag == $mode then .port = $new_port else . end)' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
-                update_standalone_port_links_by_mode "$node_mode" "$new_port"
+                jq --argjson new_port "$new_port" '.inbounds[0].port = $new_port' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+                update_standalone_port_links "$new_port"
                 restart_installed_xray
                 refresh_standalone_subscription
                 green "\n节点端口已修改为：${purple}$new_port${re}\n"
@@ -1375,8 +1014,9 @@ change_single_node_config() {
                     3) new_sni="www.stengg.com" ;;
                     4) new_sni="www.nazhumi.com" ;;
                 esac
-                jq --arg mode "$node_mode" --arg new_sni "$new_sni" '.inbounds |= map(if .tag == $mode then .streamSettings.realitySettings.dest = ($new_sni + ":443") | .streamSettings.realitySettings.target = ($new_sni + ":443") | .streamSettings.realitySettings.serverNames = [$new_sni] else . end)' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
-                update_standalone_sni_links_by_mode "$node_mode" "$new_sni"
+                jq --arg new_sni "$new_sni" '.inbounds[0].streamSettings.realitySettings.dest = ($new_sni + ":443") | .inbounds[0].streamSettings.realitySettings.target = ($new_sni + ":443") | .inbounds[0].streamSettings.realitySettings.serverNames = [$new_sni]' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
+                sed -i -E "s#([?&])sni=[^&]*#\1sni=$new_sni#" "$client_dir"
+                grep -q 'authority=' "$client_dir" && sed -i -E "s#([?&])authority=[^&]*#\1authority=$new_sni#" "$client_dir"
                 restart_installed_xray
                 refresh_standalone_subscription
                 green "\nReality SNI已修改为：${purple}$new_sni${re}\n"
@@ -1760,10 +1400,6 @@ while true; do
    check_xray_status=$(check_xray) > /dev/null 2>&1
    check_caddy_status=$(check_caddy) > /dev/null 2>&1
    check_argo_status=$(check_argo) > /dev/null 2>&1
-   if [ -f "$config_dir" ]; then
-       normalize_config_tags
-       ensure_installed_modes
-   fi
    clear
    echo ""
    green "===== Xray-2go一键安装脚本 ====="
@@ -1792,20 +1428,8 @@ while true; do
    echo ""
    case "${choice}" in
         1)  
-             if [ -f "$config_dir" ]; then
-                 if is_default_installed; then
-                     yellow "Xray-2go 默认四协议已经安装！"
-                 else
-                     for mode in argo grpc-reality xhttp-reality; do
-                         add_xray_node "$mode"
-                     done
-                     if ! command -v caddy &>/dev/null; then
-                         install_caddy
-                         add_caddy_conf
-                     elif [ ! -f /etc/caddy/Caddyfile ]; then
-                         add_caddy_conf
-                     fi
-                 fi
+            if [ ${check_xray} -eq 0 ]; then
+                yellow "Xray-2go 已经安装！"
             else
                 install_caddy
                 manage_packages install jq unzip iptables openssl coreutils lsof
@@ -1832,28 +1456,28 @@ while true; do
            ;;
         2)
             if [ -f "$config_dir" ]; then
-                 add_xray_node "grpc-reality"
+                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
             else
                 install_single_xray_node "grpc-reality"
             fi
             ;;
         3)
             if [ -f "$config_dir" ]; then
-                 add_xray_node "xhttp-reality"
+                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
             else
                 install_single_xray_node "xhttp-reality"
             fi
             ;;
         4)
             if [ -f "$config_dir" ]; then
-                 add_xray_node "reality"
+                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
             else
                 install_single_xray_node "reality"
             fi
             ;;
         5)
             if [ -f "$config_dir" ]; then
-                 add_xray_node "argo"
+                yellow "Xray-2go 已经安装，请先卸载后再安装Argo隧道节点"
             else
                 install_argo_node
             fi
@@ -1861,21 +1485,25 @@ while true; do
         6) uninstall_xray ;;
         7) manage_xray ;;
         8)
-             if mode_installed "argo"; then
-                 manage_argo
+            if [ -f "${work_dir}/install-mode" ] && grep -qE '^(grpc-reality|xhttp-reality|reality)$' "${work_dir}/install-mode"; then
+                yellow "当前安装模式未包含Argo隧道"
             else
-                 yellow "当前安装模式未包含Argo隧道"
+                manage_argo
             fi
             ;;
         9) check_nodes ;;
         10)
-            change_single_node_config
+            if [ -f "${work_dir}/install-mode" ] && [ "$(cat "${work_dir}/install-mode" 2>/dev/null)" != "default" ]; then
+                change_single_node_config
+            else
+                change_config
+            fi
             ;;
         11)
-             if [ -f /etc/caddy/Caddyfile ]; then
-                 disable_open_sub
-             else
+            if [ -f "${work_dir}/install-mode" ] && [ "$(cat "${work_dir}/install-mode" 2>/dev/null)" != "default" ]; then
                 yellow "当前安装模式未启用节点订阅"
+            else
+                disable_open_sub
             fi
             ;;
         12) clear && curl -fsSL https://raw.githubusercontent.com/eooce/ssh_tool/main/ssh_tool.sh -o ssh_tool.sh && chmod +x ssh_tool.sh && ./ssh_tool.sh ;;           
