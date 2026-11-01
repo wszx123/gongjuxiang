@@ -555,7 +555,7 @@ vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}
 
 vless://${UUID}@${CFIP2}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}&fp=chrome&type=ws&host=${argodomain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}-ws02
 
-vless://${UUID}@${CFIP2}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}&fp=chrome&type=ws&host=${argodomain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}-ws03
+vless://${UUID}@${CFIP3}:${CFPORT}?encryption=none&security=tls&sni=${argodomain}&fp=chrome&type=ws&host=${argodomain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}-ws03
 
 vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argodomain}\", \"path\": \"/vmess-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argodomain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)
 
