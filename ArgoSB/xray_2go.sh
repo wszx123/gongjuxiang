@@ -337,7 +337,7 @@ show_single_node_info() {
 
     case "${node_mode}" in
         grpc-reality)
-            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=grpc&authority=www.iij.ad.jp&serviceName=grpc&mode=gun#${isp}-ws01"
+            node_link="vless://${UUID}@${IP}:${GRPC_PORT}?encryption=none&security=reality&sni=www.iij.ad.jp&fp=chrome&pbk=${public_key}&allowInsecure=0&type=grpc&serviceName=grpc&mode=gun#${isp}-ws01"
             ;;
         xhttp-reality)
             node_link="vless://${UUID}@${IP}:${XHTTP_PORT}?encryption=none&security=reality&sni=www.nazhumi.com&fp=chrome&pbk=${public_key}&allowInsecure=0&type=xhttp&mode=auto#${isp}-ws01"
@@ -413,7 +413,7 @@ show_argo_node_info() {
     isp=$(get_isp_name)
 
     vless_link="vless://${UUID}@${CFIP}:${CFPORT}?encryption=none&security=tls&sni=${argo_domain}&fp=chrome&type=ws&host=${argo_domain}&path=%2Fvless-argo%3Fed%3D2560&allowInsecure=0#${isp}-ws01"
-    vmess_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}-ws01\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argo_domain}\", \"path\": \"/vmess-argo?ed=2560\", \"tls\": \"tls\", \"sni\": \"${argo_domain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)"
+    vmess_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"${isp}-ws01\", \"add\": \"${CFIP}\", \"port\": \"${CFPORT}\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"${argo_domain}\", \"path\": \"/vmess-argo\", \"tls\": \"tls\", \"sni\": \"${argo_domain}\", \"alpn\": \"\", \"fp\": \"chrome\", \"allowInsecure\": false }" | base64 -w0)"
 
     case "${argo_mode}" in
         vless)
