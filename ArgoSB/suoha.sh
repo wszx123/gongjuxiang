@@ -6,6 +6,73 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# CF优选域名列表，需要新增域名时直接在此追加
+preferred_domains=(
+    "freeyx.cloudflare88.eu.org"
+    "cf.090227.xyz"
+    "cloudflare.182682.xyz"
+)
+
+make_vmess_link() {
+    local cf_domain=$1
+    local host=$2
+    local port=$3
+    local tls=$4
+    local ps_name
+
+    ps_name="$(echo "$isp" | sed -e 's/_/ /g')_${cf_domain}"
+    [ "$tls" == "tls" ] && ps_name="${ps_name}_tls"
+
+    printf 'vmess://%s\n' "$(
+        printf '{"add":"%s","aid":"0","host":"%s","id":"%s","net":"ws","path":"%s","port":"%s","ps":"%s","tls":"%s","type":"none","v":"2"}' \
+            "$cf_domain" "$host" "$uuid" "$urlpath" "$port" "$ps_name" "$tls" \
+        | base64 | tr -d '\n'
+    )"
+}
+
+make_vless_link() {
+    local cf_domain=$1
+    local host=$2
+    local port=$3
+    local security=$4
+    local name_suffix=$5
+
+    printf 'vless://%s@%s:%s?encryption=none&security=%s&type=ws&host=%s&path=%s#VLESS-SUOHA-%s%s\n' \
+        "$uuid" "$cf_domain" "$port" "$security" "$host" "$urlpath" "$cf_domain" "$name_suffix"
+}
+
+write_vmess_links() {
+    local host=$1
+    local output=$2
+
+    echo -e "vmess链接已经生成, 以下优选域名可替换为CF优选IP\n" > "$output"
+    for cf_domain in "${preferred_domains[@]}"; do
+        make_vmess_link "$cf_domain" "$host" 443 tls >> "$output"
+    done
+    echo -e '\n'端口 443 可改为 2053 2083 2087 2096 8443'\n' >> "$output"
+
+    for cf_domain in "${preferred_domains[@]}"; do
+        make_vmess_link "$cf_domain" "$host" 2052 "" >> "$output"
+    done
+    echo -e '\n'端口 2052 可改为 8080 8880 2052 2082 2086 2095 >> "$output"
+}
+
+write_vless_links() {
+    local host=$1
+    local output=$2
+
+    echo -e "vless链接已经生成, 以下优选域名可替换为CF优选IP\n" > "$output"
+    for cf_domain in "${preferred_domains[@]}"; do
+        make_vless_link "$cf_domain" "$host" 443 tls -tls >> "$output"
+    done
+    echo -e '\n'端口 443 可改为 2053 2083 2087 2096 8443'\n' >> "$output"
+
+    for cf_domain in "${preferred_domains[@]}"; do
+        make_vless_link "$cf_domain" "$host" 2052 none "" >> "$output"
+    done
+    echo -e '\n'端口 2052 可改为 8080 8880 2052 2082 2086 2095 >> "$output"
+}
+
 linux_os=("Debian" "Ubuntu" "CentOS" "Fedora" "Alpine")
 linux_update=("apt update" "apt update" "yum -y update" "yum -y update" "apk update")
 linux_install=("apt -y install" "apt -y install" "yum -y install" "yum -y install" "apk add -f")
@@ -180,30 +247,12 @@ done
 clear
 if [ $protocol == 1 ]
 then
-	echo -e vmess链接已经生成, freeyx.cloudflare88.eu.org 可替换为CF优选IP'\n' > v2ray.txt
-	if [ $(grep -i PRETTY_NAME /etc/os-release | cut -d \" -f2 | awk '{print $1}') == "Alpine" ]
-	then
-		echo 'vmess://'$(echo '{"add":"freeyx.cloudflare88.eu.org","aid":"0","host":"'$argo'","id":"'$uuid'","net":"ws","path":"'$urlpath'","port":"443","ps":"'$(echo $isp | sed -e 's/_/ /g')'_tls","tls":"tls","type":"none","v":"2"}' | base64 | awk '{ORS=(NR%76==0?RS:"");}1') >> v2ray.txt
-	else
-		echo 'vmess://'$(echo '{"add":"freeyx.cloudflare88.eu.org","aid":"0","host":"'$argo'","id":"'$uuid'","net":"ws","path":"'$urlpath'","port":"443","ps":"'$(echo $isp | sed -e 's/_/ /g')'_tls","tls":"tls","type":"none","v":"2"}' | base64 -w 0) >> v2ray.txt
-	fi
-	echo -e '\n'端口 443 可改为 2053 2083 2087 2096 8443'\n' >> v2ray.txt
-	if [ $(grep -i PRETTY_NAME /etc/os-release | cut -d \" -f2 | awk '{print $1}') == "Alpine" ]
-	then
-		echo 'vmess://'$(echo '{"add":"cloudflare.182682.xyz","aid":"0","host":"'$argo'","id":"'$uuid'","net":"ws","path":"'$urlpath'","port":"2052","ps":"'$(echo $isp | sed -e 's/_/ /g')'","tls":"","type":"none","v":"2"}' | base64 | awk '{ORS=(NR%76==0?RS:"");}1') >> v2ray.txt
-	else
-		echo 'vmess://'$(echo '{"add":"cloudflare.182682.xyz","aid":"0","host":"'$argo'","id":"'$uuid'","net":"ws","path":"'$urlpath'","port":"2052","ps":"'$(echo $isp | sed -e 's/_/ /g')'","tls":"","type":"none","v":"2"}' | base64 -w 0) >> v2ray.txt
-	fi
-	echo -e '\n'端口 2052 可改为 8080 8880 2052 2082 2086 2095 >> v2ray.txt
+	write_vmess_links "$argo" v2ray.txt
 fi
 if [ $protocol == 2 ]
 then
     echo -e "${GREEN}#############################################################${NC}"
-	echo -e vless链接已经生成, freeyx.cloudflare88.eu.org 可替换为CF优选IP'\n' > v2ray.txt
-	echo 'vless://'$uuid'@freeyx.cloudflare88.eu.org:443?encryption=none&security=tls&type=ws&host='$argo'&path='$urlpath'#VLESS-SUOHA-ws01' >> v2ray.txt
-	echo -e '\n'端口 443 可改为 2053 2083 2087 2096 8443'\n' >> v2ray.txt
-	echo 'vless://'$uuid'@cloudflare.182682.xyz:2052?encryption=none&security=none&type=ws&host='$argo'&path='$urlpath'#VLESS-SUOHA-ws02' >> v2ray.txt
-	echo -e '\n'端口 2052 可改为 8080 8880 2052 2082 2086 2095 >> v2ray.txt
+	write_vless_links "$argo" v2ray.txt
 fi
 rm -rf argo.log
 cat v2ray.txt
@@ -363,11 +412,7 @@ echo $domain 绑定成功
 tunneluuid=$(cut -d= -f2 argo.log)
 if [ $protocol == 1 ]
 then
-	echo -e vmess链接已经生成, freeyx.cloudflare88.eu.org 可替换为CF优选IP'\n' >/opt/suoha/v2ray.txt
-	echo 'vmess://'$(echo '{"add":"freeyx.cloudflare88.eu.org","aid":"0","host":"'$domain'","id":"'$uuid'","net":"ws","path":"'$urlpath'","port":"443","ps":"'$(echo $isp | sed -e 's/_/ /g')'","tls":"tls","type":"none","v":"2"}' | base64 -w 0) >>/opt/suoha/v2ray.txt
-	echo -e '\n'端口 443 可改为 2053 2083 2087 2096 8443'\n' >>/opt/suoha/v2ray.txt
-	echo 'vmess://'$(echo '{"add":"cloudflare.182682.xyz","aid":"0","host":"'$domain'","id":"'$uuid'","net":"ws","path":"'$urlpath'","port":"2052","ps":"'$(echo $isp | sed -e 's/_/ /g')'","tls":"","type":"none","v":"2"}' | base64 -w 0) >>/opt/suoha/v2ray.txt
-	echo -e '\n'端口 2052 可改为 8080 8880 2052 2082 2086 2095'\n' >>/opt/suoha/v2ray.txt
+	write_vmess_links "$domain" /opt/suoha/v2ray.txt
 	echo 注意:如果 80 8080 8880 2052 2082 2086 2095 端口无法正常使用 >>/opt/suoha/v2ray.txt
 	echo 请前往 https://dash.cloudflare.com/ >>/opt/suoha/v2ray.txt
 	echo 检查管理面板 SSL/TLS - 边缘证书 - 始终使用HTTPS 是否处于关闭状态 >>/opt/suoha/v2ray.txt
@@ -375,11 +420,7 @@ fi
 if [ $protocol == 2 ]
 then
     echo -e "${GREEN}#############################################################${NC}"
-	echo -e vless链接已经生成, freeyx.cloudflare88.eu.org 可替换为CF优选IP'\n' >/opt/suoha/v2ray.txt
-	echo 'vless://'$uuid'@freeyx.cloudflare88.eu.org:443?encryption=none&security=tls&type=ws&host='$domain'&path='$urlpath'#VLESS-SUOHA-ws01' >>/opt/suoha/v2ray.txt
-	echo -e '\n'端口 443 可改为 2053 2083 2087 2096 8443'\n' >>/opt/suoha/v2ray.txt
-	echo 'vless://'$uuid'@cloudflare.182682.xyz:2052?encryption=none&security=none&type=ws&host='$domain'&path='$urlpath'#VLESS-SUOHA-ws02' >>/opt/suoha/v2ray.txt
-	echo -e '\n'端口 2052 可改为 8080 8880 2052 2082 2086 2095'\n' >>/opt/suoha/v2ray.txt
+	write_vless_links "$domain" /opt/suoha/v2ray.txt
 	echo 注意:如果 80 8080 8880 2052 2082 2086 2095 端口无法正常使用 >>/opt/suoha/v2ray.txt
     echo -e "${GREEN}#############################################################${NC}"
 	echo 请前往 https://dash.cloudflare.com/ >>/opt/suoha/v2ray.txt
@@ -646,7 +687,7 @@ echo 将已经绑定的系统目录下的 /root/.cloudflared 文件夹以及内�
 echo 拷贝至新系统下同样的目录,会自动跳过登录验证
 
 echo -e '\n'梭哈是一种智慧!!!梭哈!梭哈!梭哈!梭哈!梭哈!梭哈!梭哈...'\n'
-echo -e "${GREEN}----------2025年10月7更新【自用】----------${NC}"
+echo -e "${GREEN}----------2026年11月1更新【自用】----------${NC}"
 echo 1.梭哈模式
 echo 2.安装服务
 echo 3.卸载服务
