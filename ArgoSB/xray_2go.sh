@@ -926,6 +926,26 @@ update_standalone_uuid_links() {
     fi
 }
 
+update_standalone_port_links() {
+    local new_port=$1
+
+    awk -v port="$new_port" '
+        /^vless:\/\// {
+            query_pos = index($0, "?")
+            if (query_pos > 0) {
+                address = substr($0, 1, query_pos - 1)
+                query = substr($0, query_pos)
+                sub(/:[0-9]+$/, ":" port, address)
+                print address query
+            } else {
+                print
+            }
+            next
+        }
+        { print }
+    ' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
+}
+
 change_single_node_config() {
     local node_mode new_uuid new_port new_sni
     node_mode=$(cat "${work_dir}/install-mode" 2>/dev/null)
@@ -976,7 +996,7 @@ change_single_node_config() {
                     fi
                 done
                 jq --argjson new_port "$new_port" '.inbounds[0].port = $new_port' "$config_dir" > "${config_dir}.tmp" && mv "${config_dir}.tmp" "$config_dir" || return 1
-                sed -i -E "s#^(vless://[^@]+@.*):[0-9]+([?].*)$#\1:$new_port\2#" "$client_dir"
+                update_standalone_port_links "$new_port"
                 restart_installed_xray
                 refresh_standalone_subscription
                 green "\n节点端口已修改为：${purple}$new_port${re}\n"
@@ -1246,7 +1266,6 @@ EOF
                     sed -i '/^ExecStart=/c ExecStart=/bin/sh -c "/etc/xray/argo tunnel --edge-ip-version auto --config /etc/xray/tunnel.yml run 2>&1"' /etc/systemd/system/tunnel.service
                 fi
                 restart_argo
-                add_split_url
                 change_argo_domain
             elif [[ $argo_auth =~ ^[A-Z0-9a-z=]{120,250}$ ]]; then
                 if [ -f /etc/alpine-release ]; then
@@ -1256,7 +1275,6 @@ EOF
                     sed -i '/^ExecStart=/c ExecStart=/bin/sh -c "/etc/xray/argo tunnel --edge-ip-version auto --no-autoupdate --protocol http2 run --token '$argo_auth' 2>&1"' /etc/systemd/system/tunnel.service
                 fi
                 restart_argo
-                add_split_url
                 change_argo_domain
             else
                 yellow "你输入的argo域名或token不匹配，请重新输入"
@@ -1323,7 +1341,15 @@ ArgoDomain=$get_argodomain
 
 # 更新Argo域名到订阅
 change_argo_domain() {
-    sed -i "5s/sni=[^&]*/sni=$ArgoDomain/; 5s/host=[^&]*/host=$ArgoDomain/" /etc/xray/url.txt
+    awk -v domain="$ArgoDomain" '
+        /^vless:\/\// && /type=ws/ {
+            gsub(/sni=[^&]+/, "sni=" domain)
+            gsub(/host=[^&]+/, "host=" domain)
+            print
+            next
+        }
+        { print }
+    ' "$client_dir" > "${client_dir}.tmp" && mv "${client_dir}.tmp" "$client_dir"
     content=$(cat "$client_dir")
     vmess_urls=$(grep -o 'vmess://[^ ]*' "$client_dir")
     vmess_prefix="vmess://"
