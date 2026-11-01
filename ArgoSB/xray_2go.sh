@@ -1411,16 +1411,17 @@ while true; do
    green "1. 安装Xray-2go【默认四协议】"
    green "2. 安装grpc-reality节点"
    green "3. 安装xhttp-reality节点"
-   green "4. 安装reality节点"
-   green "5. 安装Argo隧道节点"
+   green "4. 安装Argo隧道两节点"
+   yellow "5. 安装reality节点【与默认四协议暂不兼容】"
    purple "6. 卸载Xray-2go"
    green "7. Xray-2go管理"
    green "8. Argo隧道管理"
    green "9. 查看节点信息"
    green "10. 修改节点配置"
    green "11. 管理节点订阅"
-   red "12. ssh综合工具箱"
-   red "13. 安装singbox四合一"
+   red "12. ws01综合工具箱"
+   red "13. ssh综合工具箱-eooce"
+   red "14. 安装singbox四合一-eooce"
    echo  "=============================="
    purple "0. 退出脚本"
    reading "请输入选择(0-13) [默认1]: " choice
@@ -1470,16 +1471,16 @@ while true; do
             ;;
         4)
             if [ -f "$config_dir" ]; then
-                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
+                yellow "Xray-2go 已经安装，请先卸载后再安装Argo隧道两节点"
             else
-                install_single_xray_node "reality"
+                install_argo_node
             fi
             ;;
         5)
             if [ -f "$config_dir" ]; then
-                yellow "Xray-2go 已经安装，请先卸载后再安装Argo隧道节点"
+                yellow "Xray-2go 已经安装，请先卸载后再安装独立节点"
             else
-                install_argo_node
+                install_single_xray_node "reality"
             fi
             ;;
         6) uninstall_xray ;;
@@ -1506,8 +1507,9 @@ while true; do
                 disable_open_sub
             fi
             ;;
-        12) clear && curl -fsSL https://raw.githubusercontent.com/eooce/ssh_tool/main/ssh_tool.sh -o ssh_tool.sh && chmod +x ssh_tool.sh && ./ssh_tool.sh ;;           
-        13) clear && bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sing-box.sh) ;;
+        12) clear && curl -fsSL wget https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/toolbox.sh -O toolbox.sh && chmod +x toolbox.sh && ./toolbox.sh ;; 
+        13) clear && curl -fsSL https://raw.githubusercontent.com/eooce/ssh_tool/main/ssh_tool.sh -o ssh_tool.sh && chmod +x ssh_tool.sh && ./ssh_tool.sh ;; 
+        14) clear && bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sing-box.sh) ;;
         0) exit 0 ;;
         *) red "无效的选项，请输入 0 到 13" ;; 
    esac
