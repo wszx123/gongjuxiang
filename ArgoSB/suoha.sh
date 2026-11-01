@@ -12,7 +12,7 @@ preferred_domains=(
     "cf.090227.xyz"
     "cf.877774.xyz"
     "cdns.doon.eu.org"
-    "www.baipiao.eu.org"
+    "cmcc.877774.xyz"
     "cloudflare.182682.xyz"
 )
 
