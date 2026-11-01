@@ -1419,12 +1419,13 @@ while true; do
    green "9. 查看节点信息"
    green "10. 修改节点配置"
    green "11. 管理节点订阅"
-   red "12. ws01综合工具箱"
+   echo  "------------------------------"
+   yellow "12. ws01综合工具箱"
    red "13. ssh综合工具箱-eooce"
    red "14. 安装singbox四合一-eooce"
    echo  "=============================="
    purple "0. 退出脚本"
-   reading "请输入选择(0-13) [默认1]: " choice
+   reading "请输入选择(0-14) [默认1]: " choice
    choice=${choice:-1}
    echo ""
    case "${choice}" in
