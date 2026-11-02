@@ -37,7 +37,7 @@ service_action(){ local action="$1"; if ! installed; then err '尚未安装 3X-U
 load_config(){ [[ -f "$CONFIG_FILE" ]] || return 0; local k v; while IFS='=' read -r k v; do case "$k" in NETWORK_TYPE) NETWORK_TYPE="$v";; PUBLIC_HOST) PUBLIC_HOST="$v";; DOMAIN) DOMAIN="$v";; EXTERNAL_PORT) EXTERNAL_PORT="$v";; PANEL_PORT) PANEL_PORT="$v";; HTTPS_MODE) HTTPS_MODE="$v";; WEB_PATH) WEB_PATH="$v";; esac; done < "$CONFIG_FILE"; }
 save_config(){ install -d -m 700 "$CONFIG_DIR"; local tmp; tmp=$(mktemp "$CONFIG_DIR/.access.XXXXXX"); chmod 600 "$tmp"; printf 'NETWORK_TYPE=%s\nPUBLIC_HOST=%s\nDOMAIN=%s\nEXTERNAL_PORT=%s\nPANEL_PORT=%s\nHTTPS_MODE=%s\nWEB_PATH=%s\n' "$NETWORK_TYPE" "$PUBLIC_HOST" "$DOMAIN" "$EXTERNAL_PORT" "$PANEL_PORT" "$HTTPS_MODE" "$WEB_PATH" > "$tmp"; mv -f "$tmp" "$CONFIG_FILE"; }
 public_ip(){ local ip=''; ip=$(curl -4fsS --connect-timeout 3 --max-time 6 https://api.ipify.org 2>/dev/null || true); if valid_ipv4 "$ip"; then printf '%s' "$ip"; fi; }
-header(){ clear 2>/dev/null || true; say '========== 3X-UI 中文安装向导 ==========';  }
+header(){ clear 2>/dev/null || true; say '======== 3X-UI 中文安装向导 20261101 ========';  }
 configure_access(){
   local choice p host ext d
   say '【面板访问方式配置】'; say '1. 普通公网 VPS'; say '2. NAT VPS（共享 IPv4，需要外部端口映射）'; say '0. 返回'; ask choice '请选择 [1/2/0]：' 1 || return 1
@@ -366,9 +366,29 @@ main(){
   require_root; load_config
   while :; do
     header; show_status; say
-    say '  1. 全新安装 3X-UI'; say '  2. 查看面板状态'; say '  3. 启动面板'; say '  4. 停止面板'; say '  5. 重启面板'; say '  6. 查看运行日志'; say '  7. 备份面板数据库'; say
-    say '  8. 修改管理员账号与密码'; say '  9. 修改面板端口与访问路径'; say ' 10. 配置 HTTPS / SSL 证书'; say ' 11. 查看面板访问地址'; say ' 12. NAT VPS 端口配置指引'; say ' 13. 配置面板访问方式'; say
-    say ' 14. 更新 3X-UI'; say ' 15. 查看系统与资源信息'; say ' 16. 进入官方管理菜单'; say ' 17. 卸载 3X-UI'; say ' ========================================';  0. 退出'; say
+    say '  1. 全新安装 3X-UI';
+    say '  2. 查看面板状态';
+    say '  3. 启动面板';
+    say '  4. 停止面板';
+    say '  5. 重启面板';
+    say '  6. 查看运行日志';
+    say '  7. 备份面板数据库';
+    say
+    say '  8. 修改管理员账号与密码';
+    say '  9. 修改面板端口与访问路径';
+    say ' 10. 配置 HTTPS / SSL 证书';
+    say ' 11. 查看面板访问地址';
+    say ' 12. NAT VPS 端口配置指引';
+    say ' 13. 配置面板访问方式';
+    say
+    say ' 14. 更新 3X-UI';
+    say ' 15. 查看系统与资源信息';
+    say ' 16. 进入官方管理菜单';
+    say ' 17. 卸载 3X-UI'; 
+    say '======================================'
+    say
+    say ' 0. 退出';
+    say
     local c; ask c '请选择 [0-17]：' '' || break
     case "$c" in
       1) new_install;; 2) show_status;; 3) service_action start;; 4) service_action stop;; 5) service_action restart;; 6) show_logs;; 7) backup_db;;
