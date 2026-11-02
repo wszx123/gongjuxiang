@@ -368,7 +368,7 @@ main(){
     header; show_status; say
     say '  1. 全新安装 3X-UI'; say '  2. 查看面板状态'; say '  3. 启动面板'; say '  4. 停止面板'; say '  5. 重启面板'; say '  6. 查看运行日志'; say '  7. 备份面板数据库'; say
     say '  8. 修改管理员账号与密码'; say '  9. 修改面板端口与访问路径'; say ' 10. 配置 HTTPS / SSL 证书'; say ' 11. 查看面板访问地址'; say ' 12. NAT VPS 端口配置指引'; say ' 13. 配置面板访问方式'; say
-    say ' 14. 更新 3X-UI'; say ' 15. 查看系统与资源信息'; say ' 16. 进入官方管理菜单'; say ' 17. 卸载 3X-UI'; say; say ' say '========================================';  0. 退出'; say
+    say ' 14. 更新 3X-UI'; say ' 15. 查看系统与资源信息'; say ' 16. 进入官方管理菜单'; say ' 17. 卸载 3X-UI'; say ' ========================================';  0. 退出'; say
     local c; ask c '请选择 [0-17]：' '' || break
     case "$c" in
       1) new_install;; 2) show_status;; 3) service_action start;; 4) service_action stop;; 5) service_action restart;; 6) show_logs;; 7) backup_db;;
