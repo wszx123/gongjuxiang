@@ -40,7 +40,7 @@ public_ip(){ local ip=''; ip=$(curl -4fsS --connect-timeout 3 --max-time 6 https
 header(){ clear 2>/dev/null || true; say '======== 3X-UI 中文安装向导 20261101 ========';  }
 configure_access(){
   local choice p host ext d
-  say '【面板访问方式配置】'; say '1. 普通公网 VPS'; say '2. NAT VPS（共享 IPv4，需要外部端口映射）'; say '0. 返回'; ask choice '请选择 [1/2/0]：' 1 || return 1
+  say '【面板访问方式配置】'; say '1. 普通公网 VPS'; say '2. NAT VPS（共享 IPv4，需要外部端口映射）'; say '0. 返回'; ask choice '请选择 [1/2/0，默认 1]：' 1 || return 1
   case "$choice" in 1) NETWORK_TYPE=public;; 2) NETWORK_TYPE=nat;; 0) return 0;; *) err '无效选择'; return 1;; esac
   ask p "面板内部端口 [默认 $PANEL_PORT]：" "$PANEL_PORT" || return 1
   valid_port "$p" || { err '内部端口无效'; return 1; }; PANEL_PORT="$p"
@@ -51,7 +51,7 @@ configure_access(){
     EXTERNAL_PORT="$ext"
   else EXTERNAL_PORT="$PANEL_PORT"; fi
   say '1. 使用公网 IPv4'; say '2. 使用自定义域名'; say '3. 暂不设置';
-  ask choice '请选择访问地址类型 [1/2/3]：' 1 || return 1
+  ask choice '请选择访问地址类型 [1/2/3，默认 1]：' 1 || return 1
   case "$choice" in
     1) ask host '公网 IPv4（留空则尝试自动检测）：' "${PUBLIC_HOST:-}" || return 1; [[ -n "$host" ]] || host=$(public_ip); if [[ -n "$host" ]] && ! valid_ipv4 "$host"; then err 'IPv4 格式不正确'; return 1; fi; PUBLIC_HOST="$host"; DOMAIN='';;
     2) ask d '请输入域名（不含 https://）：' "${DOMAIN:-}" || return 1; valid_domain "$d" || { err '域名格式不正确'; return 1; }; DOMAIN="${d,,}"; PUBLIC_HOST='';;
@@ -180,7 +180,7 @@ install_dependencies(){
 new_install(){
   if installed; then warn '检测到已安装的 3X-UI。为保护现有数据库和节点，禁止重复全新安装。'; return 0; fi
   say '【全新安装】'; say '1. 开始设置'; say '0. 返回'; local c
-  ask c '请选择 [1/0]：' 1 || return 1; [[ "$c" == 1 ]] || return 0
+  ask c '请选择 [1/0，默认 1]：' 1 || return 1; [[ "$c" == 1 ]] || return 0
   configure_access || return 1
   PANEL_USER="admin$(random_hex 4)"; PANEL_PASS="$(random_hex 16)"; WEB_PATH="/$(random_hex 12)";
   say; say '【HTTPS 证书】'; say '1. 安装后再配置 HTTPS（推荐 NAT VPS）'; say '2. 使用官方安装程序的域名证书流程（需要满足官方验证条件）';
