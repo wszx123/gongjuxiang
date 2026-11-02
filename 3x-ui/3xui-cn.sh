@@ -7,7 +7,7 @@ OFFICIAL='https://raw.githubusercontent.com/MHSanaei/3x-ui/master/install.sh'
 CONFIG_DIR='/etc/3xui-cn'
 CONFIG_FILE="$CONFIG_DIR/access.conf"
 LOG_DIR='/var/log/3xui-cn'
-PANEL_PORT=2053
+PANEL_PORT=50321
 NETWORK_TYPE='public'
 PUBLIC_HOST=''
 DOMAIN=''
@@ -189,7 +189,7 @@ new_install(){
   say; say '========== 安装前确认 ==========';
   say "网络类型：$NETWORK_TYPE"; say "内部端口：$PANEL_PORT"; say "NAT 外部端口：${EXTERNAL_PORT:-未设置}"; say "域名：${DOMAIN:-未设置}";
   say "HTTPS：$HTTPS_MODE"; say '1. 确认安装'; say '2. 返回主菜单';
-  ask c '请选择 [1/2]：' 2 || return 1; [[ "$c" == 1 ]] || return 0
+  ask c '请选择 [1/2，默认 1]：' 1 || return 1; [[ "$c" == 1 ]] || return 0
   install -d -m 700 "$LOG_DIR"
   local installer log rc=0
   installer=$(mktemp /tmp/3xui-official.XXXXXX.sh)
@@ -358,7 +358,7 @@ ssl_menu(){
     0) return 0;; *) err '无效选择';;
   esac
 }
-nat_guide(){ say '【NAT VPS 配置指引】'; say '1. 在 3X-UI 内填写面板内部监听端口（例如 2053）。'; say '2. 在服务商 NAT 后台创建 TCP 外部端口 → 内部端口映射。'; say '3. 客户端连接时使用服务商分配的外部端口。'; say '4. 每条通过共享 IPv4 访问的入站通常需要独立端口映射。'; say '5. 域名 A 记录指向公网 IPv4；DNS 解析不等于端口映射。'; say '6. 未配置 HTTPS 时不要通过公网 HTTP 登录面板。'; say '7. 独立 IPv6 直连不依赖 IPv4 NAT，但需检查 IPv6 防火墙和监听。'; }
+nat_guide(){ say '【NAT VPS 配置指引】'; say '1. 在 3X-UI 内填写面板内部监听端口（例如 50321）。'; say '2. 在服务商 NAT 后台创建 TCP 外部端口 → 内部端口映射。'; say '3. 客户端连接时使用服务商分配的外部端口。'; say '4. 每条通过共享 IPv4 访问的入站通常需要独立端口映射。'; say '5. 域名 A 记录指向公网 IPv4；DNS 解析不等于端口映射。'; say '6. 未配置 HTTPS 时不要通过公网 HTTP 登录面板。'; say '7. 独立 IPv6 直连不依赖 IPv4 NAT，但需检查 IPv6 防火墙和监听。'; }
 sys_info(){ uname -a; sed -n '1,8p' /etc/os-release 2>/dev/null || true; free -h 2>/dev/null || true; df -h / 2>/dev/null || true; }
 update_panel(){ installed || { err '尚未安装面板'; return 1; }; warn '升级前建议先备份数据库。'; if confirm '是否进入官方更新流程？'; then x-ui; fi; }
 uninstall_panel(){ warn '卸载会影响现有面板和节点。'; if confirm '是否进入官方菜单自行确认卸载？'; then x-ui; fi; }
@@ -389,7 +389,7 @@ main(){
     say
     say ' 0. 退出';
     say
-    local c; ask c '请选择 [0-17]：' '' || break
+    local c; ask c '请选择 [0-17，默认 1]：' 1 || break
     case "$c" in
       1) new_install;; 2) show_status;; 3) service_action start;; 4) service_action stop;; 5) service_action restart;; 6) show_logs;; 7) backup_db;;
       8) manage_credentials;; 9) manage_path_port;; 10) ssl_menu;; 11) show_address;; 12) nat_guide;; 13) configure_access;;
