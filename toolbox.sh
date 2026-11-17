@@ -812,7 +812,7 @@ install_php_caddy() {
     echo "11. 配置 Caddyfile【提前解析好域名，第一次配置后进入Caddyfile把多余的备注删除】..."
     echo -e "${RED}12. 启动并启用 PHP 和 Caddy【以上10个步骤正确完成才启动】...${NC}"
     echo "13. 查看安装结果"
-    echo -e "${YELLOW}14. 一键安装 MySQL 8.0和扩展（推荐）【不用数据库可不安装】...${NC}"
+    echo -e "${YELLOW}14. 一键安装 双MySQL 8.0和扩展（推荐）【不用数据库可不安装】...${NC}"
     echo -e "${YELLOW}15. 安装MariaDB（兼容 MySQL）【不用数据库可不安装】...${NC}"
     echo "16. 设置 root 密码【一定要修改默认的rootpass123为强密码】..."
     echo "17. 登录 MariaDB并创建数据库..."
@@ -975,7 +975,7 @@ EOF
             back_to_menu install_php_caddy
             ;;
         14)
-            echo "一键安装 MySQL 8.0和扩展（推荐）..."
+            echo "一键安装 双MySQL 8.0和扩展（推荐）..."
             echo "下载脚本..."
             wget -O install-mysql.sh https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/install-mysql.sh
             echo "赋予执行权限..."
@@ -1900,7 +1900,7 @@ vps_security_tools() {
 main_menu() {
     clear
     echo "#############################################################"
-    echo -e "${GREEN}=== Linux 命令工具箱2026.11.02 ===${NC}"
+    echo -e "${GREEN}=== Linux 命令工具箱2026.11.17 ===${NC}"
     echo "#############################################################"
     echo "1. 常用命令"
     echo "2. VPS 安装工具"
