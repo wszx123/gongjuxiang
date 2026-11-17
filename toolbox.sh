@@ -975,46 +975,14 @@ EOF
             back_to_menu install_php_caddy
             ;;
         14)
-            echo "一键安装 MariaDB 双数据库和 PHP 扩展（推荐）..."
+            echo "一键安装 双MariaDB 双数据库和扩展（推荐）..."
             echo "下载脚本..."
-
-            MYSQL_SCRIPT="/tmp/install-mysql.sh"
-            MYSQL_URL="https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/install-mysql.sh"
-
-            rm -f "$MYSQL_SCRIPT"
-
-            if ! wget -q --show-progress -O "$MYSQL_SCRIPT" "$MYSQL_URL"; then
-                echo -e "${RED}安装脚本下载失败，请检查网络后重试！${NC}"
-                rm -f "$MYSQL_SCRIPT"
-                back_to_menu install_php_caddy
-                return
-            fi
-
-            if [ ! -s "$MYSQL_SCRIPT" ]; then
-                echo -e "${RED}下载的安装脚本为空，停止执行！${NC}"
-                rm -f "$MYSQL_SCRIPT"
-                back_to_menu install_php_caddy
-                return
-            fi
-
-            echo "检查脚本..."
-            if ! bash -n "$MYSQL_SCRIPT"; then
-                echo -e "${RED}脚本语法检查失败，停止安装！${NC}"
-                rm -f "$MYSQL_SCRIPT"
-                back_to_menu install_php_caddy
-                return
-            fi
-
+            wget -O install-mysql.sh https://raw.githubusercontent.com/wszx123/gongjuxiang/refs/heads/main/install-mysql.sh
+            echo "赋予执行权限..."
+            chmod +x install-mysql.sh
             echo "执行安装..."
-            if sudo bash "$MYSQL_SCRIPT"; then
-                echo
-                echo -e "${GREEN}MariaDB 双数据库及 PHP 扩展安装成功！${NC}"
-            else
-                echo
-                echo -e "${RED}安装失败！请检查上面的错误信息，不要忽略错误。${NC}"
-            fi
-
-            rm -f "$MYSQL_SCRIPT"
+            sudo ./install-mysql.sh
+            echo -e "${GREEN}MariaDB 双数据库安装完成！${NC}"
             back_to_menu install_php_caddy
             ;;
         15)
