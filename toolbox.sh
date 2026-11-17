@@ -975,8 +975,6 @@ EOF
             back_to_menu install_php_caddy
             ;;
         14)
-
-        14)
             echo "一键安装 MariaDB 双数据库和 PHP 扩展（推荐）..."
             echo "下载脚本..."
 
